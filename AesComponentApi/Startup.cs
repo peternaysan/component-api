@@ -60,7 +60,12 @@ namespace AesComponentApi
             app.UseHttpsRedirection();
             app.UseMvc();
             app.UseCors("CorsPolicy");
-           
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+                             {
+                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                             });
+
         }
     }
 }
