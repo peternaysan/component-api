@@ -39,7 +39,7 @@ namespace AesComponentApi
                                        c.SwaggerDoc("v1", new Info
                                                           {
                                                               Version = "v1",
-                                                              Title = "AES COMPONENT API",
+                                                              Title = "Gac Losgistics Aes Api",
                                                               Description = "Web api for the aes component",                                                             
                                                           });
                                    });
