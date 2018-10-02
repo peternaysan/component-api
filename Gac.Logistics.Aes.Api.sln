@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AesComponentApi", "AesComponentApi\AesComponentApi.csproj", "{A5ED0D2C-D946-4C57-8F8F-D3143068A36A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gac.Logistics.Aes.Api", "Gac.Logistics.Aes.Api\Gac.Logistics.Aes.Api.csproj", "{A5ED0D2C-D946-4C57-8F8F-D3143068A36A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
