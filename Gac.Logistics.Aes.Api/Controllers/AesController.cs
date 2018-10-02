@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AesComponentApi.Controllers
+namespace Gac.Logistics.Aes.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/aes")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class AesController : ControllerBase
     {
         // GET api/values
         [HttpGet]
