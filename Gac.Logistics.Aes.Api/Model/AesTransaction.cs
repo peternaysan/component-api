@@ -7,12 +7,11 @@ namespace Gac.Logistics.Aes.Api.Model
 {
     public class AesTransaction
     {
-        public string Id { get; set; }
-        public long BookingId { get; set; }
-        public string InstanceCode { get; set; }
-
         public string TransactionId { get; set; }
-
+        public string Status { get; set; }
+        public string Message { get; set; }
         public Aes AesDetailEntity { get; set; }
+        public DateTime LastUpdatedOn { get; set; }
+        public string LastUpdatedBy { get; set; }
     }
 }
