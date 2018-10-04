@@ -17,11 +17,16 @@ namespace Gac.Logistics.Aes.Controllers
             return new string[] { "value1", "value2" };
         }
 
-        // GET api/values/5
         [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public async Task<ActionResult> Get(string id)
         {
-            return "value";
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var item = await DocumentDbRepository<Api.Model.Aes>.GetItemAsync(id);
+            return new ObjectResult(item);
         }
 
         // POST api/values
