@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Gac.Logistics.Aes.Api.Model;
+using Gac.Logistics.Aes.Api.Data;
 
-namespace Gac.Logistics.Aes.Api.Controllers
+namespace Gac.Logistics.Aes.Controllers
 {
     [Route("api/aes")]
     [ApiController]
@@ -23,8 +26,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult> Post(Api.Model.Aes aes)
         {
+           var aesObj= await DocumentDbRepository<Api.Model.Aes>.CreateItemAsync(aes);
+            return new ObjectResult(aesObj);
         }
 
         // PUT api/values/5
