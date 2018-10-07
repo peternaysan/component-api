@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Gac.Logistics.Aes.Api.Model;
 using Gac.Logistics.Aes.Api.Data;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.SystemFunctions;
 
 namespace Gac.Logistics.Aes.Controllers
 {
@@ -10,6 +13,13 @@ namespace Gac.Logistics.Aes.Controllers
     [ApiController]
     public class AesController : ControllerBase
     {
+        private IDocumentDbRepository<AesDbRepository> aesDbRepository;
+
+        public AesController(IDocumentDbRepository<AesDbRepository> aesDbRepository)
+        {
+            this.aesDbRepository = aesDbRepository;
+
+        }
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
@@ -24,8 +34,8 @@ namespace Gac.Logistics.Aes.Controllers
             {
                 return BadRequest();
             }
-
-            var item = await DocumentDbRepository<Api.Model.Aes>.GetItemAsync(id);
+            await this.aesDbRepository.InitAsync("aes");
+            var item = await this.aesDbRepository.GetItemAsync<Api.Model.Aes>(id);
             return new ObjectResult(item);
         }
 
@@ -33,8 +43,21 @@ namespace Gac.Logistics.Aes.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Api.Model.Aes aes)
         {
-           var aesObj= await DocumentDbRepository<Api.Model.Aes>.CreateItemAsync(aes);
-            return new ObjectResult(aesObj);
+            await this.aesDbRepository.InitAsync("aes");
+            var item = await aesDbRepository.GetItemsAsync<Api.Model.Aes>(obj=>obj.BookingId==aes.BookingId && obj.InstanceCode==aes.InstanceCode);
+            Document document = null;
+            if (item !=null && item.Any())
+            {
+                var aesObj = item.FirstOrDefault();
+                document = await this.aesDbRepository.UpdateItemAsync(aesObj.Id,aesObj);
+
+            }
+            else
+            {
+                document = await this.aesDbRepository.CreateItemAsync(aes);
+
+            }
+            return new ObjectResult(document);
         }
 
         // PUT api/values/5

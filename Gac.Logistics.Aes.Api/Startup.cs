@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using Gac.Logistics.Aes.Api.Data;
+using Gac.Logistics.Aes.Api.Model;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace AesComponentApi
@@ -21,7 +23,9 @@ namespace AesComponentApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-        
+            // Repositories
+            services.AddScoped<IDocumentDbRepository<AesDbRepository>, AesDbRepository>();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddCors(options =>
                              {
@@ -43,6 +47,8 @@ namespace AesComponentApi
                                                               Description = "Web api for the aes component",                                                             
                                                           });
                                    });
+            // Make Configuration injectable
+            services.AddSingleton(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +65,7 @@ namespace AesComponentApi
 
             app.UseHttpsRedirection();
             app.UseMvc();
+            DocumentDbInitializer.Initialize(Configuration);
             app.UseCors("CorsPolicy");
             app.UseSwagger();
             app.UseSwaggerUI(c =>

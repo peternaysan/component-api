@@ -40,7 +40,7 @@ namespace Gac.Logistics.Aes.Api.Model
         public DateTime LastUpdatedOn { get; set; }
 
         [JsonProperty("submittedOn")]
-        public DateTime SubmittedOn { get; set; }
+        public DateTime? SubmittedOn { get; set; }
 
 
     }
