@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gac.aes.wpf.testapp"
+        xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         mc:Ignorable="d" WindowState="Maximized"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
@@ -25,9 +26,9 @@
             </StackPanel>
         </Grid>
 
-        <WebBrowser Name="webControl" Grid.Row="1"/>
+        <cefSharp:ChromiumWebBrowser  Grid.Row="1"   Name="webControl"/>
 
-        <TextBlock Text="Status message will come here .." TextAlignment="Center" Foreground="Yellow" FontSize="12pt" Background="DimGray" Grid.Row="2" Padding="10"></TextBlock>
+        <TextBlock Text="status message will come here .." TextAlignment="Center" Foreground="Yellow" FontSize="12pt" Background="DimGray" Grid.Row="2" Padding="10"></TextBlock>
 
 
     </Grid>

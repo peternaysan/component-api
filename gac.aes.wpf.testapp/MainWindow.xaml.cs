@@ -28,7 +28,7 @@ namespace gac.aes.wpf.testapp
         private void b1_Click(object sender, RoutedEventArgs e)
         {
             var url = urlText.Text;
-            webControl.Navigate(url);
+            webControl.Address = url;
         }
     }
 }
