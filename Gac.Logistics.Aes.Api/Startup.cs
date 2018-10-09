@@ -24,7 +24,8 @@ namespace AesComponentApi
         public void ConfigureServices(IServiceCollection services)
         {
             // Repositories
-            services.AddScoped<IDocumentDbRepository<AesDbRepository>, AesDbRepository>();
+            services.AddScoped<AesDbRepository, AesDbRepository>();
+            services.AddScoped<AesTransactionDbRepository, AesTransactionDbRepository>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddCors(options =>
