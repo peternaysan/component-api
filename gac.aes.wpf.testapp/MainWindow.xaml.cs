@@ -27,7 +27,9 @@ namespace gac.aes.wpf.testapp
             var client = new HttpClient();
             var json = this.GetDummyJsonString();
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var result = client.PostAsync($"", content).Result;
+            var result = client.PostAsync(apiUrl, content).Result;
+            var Id=result.Content.ReadAsStringAsync();
+            urlText.Text += $"\\{Id}";
             var url = urlText.Text;
             webControl.Address = url;
         }
