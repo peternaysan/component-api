@@ -9,28 +9,16 @@ namespace Gac.Logistics.Aes.Api.Data
 {
     public class DocumentDbInitializer
     {
-        private static string Endpoint = string.Empty;
-        private static string Key = string.Empty;
-        private static DocumentClient client;
+        private static string endpoint = string.Empty;
+        private static string key = string.Empty;
+        public static DocumentClient Client { get; private set; }
 
         public static void Initialize(IConfiguration configuration)
         {
-            Endpoint = configuration["AppSettings:CosmosConnectionEndPoint"];
-            Key = configuration["AppSettings:CosmosKey"];
+            endpoint = configuration["AppSettings:CosmosConnectionEndPoint"];
+            key = configuration["AppSettings:CosmosKey"];
+            Client = new DocumentClient(new Uri(endpoint), key);
 
-            client = new DocumentClient(new Uri(Endpoint), Key);
-
-        }
-
-        private static async Task InitGalleryAsync(IConfiguration configuration)
-        {
-            AesDbRepository galleryRepository = new AesDbRepository(configuration);
-            await galleryRepository.InitAsync("Pictures");
-
-            var aes = await galleryRepository.GetItemsAsync<Model.Aes>();
-            if (!aes.Any())
-            {
-            }
-        }
+        }     
     }
 }
