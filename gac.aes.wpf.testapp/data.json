@@ -1,0 +1,122 @@
+{
+  "bookingId": 1234569,
+  "instanceCode": "DXB",
+  "header": {
+    "acctId": "",
+    "senderId": "",
+    "messageId": "",
+    "actionType": "",
+    "senderEmail": "gacfreight@gac.com"
+  },
+  "shipmentHeader": {
+    "relatedParties": "N",
+    "filingTypeIndicator": "2",
+    "shipmentAction": "A",
+    "shipmentReferenceNumber": "AESHJ8413060278",
+    "estimatedExportDate": "08/30/2018",
+    "portofExportation": "AESSharjah",
+    "portofUnlading": "KIAAbaiang",
+    "inbondCode": "70",
+    "entryNumber": "",
+    "foreignTradeZone": "",
+    "originState": "",
+    "ultimateDestinationCountry": "KI - Kiribati",
+    "fppiRoutedTransport": "Y",
+    "hazmatIndicator": "N"
+  },
+  "shipmentParties": [
+    {
+      "partyId": "11246",
+      "partyIdType": "E",
+      "partyType": "E",
+      "partyName": "20Cube Logistics (Pvt) Ltd (LK)",
+      "contactFirstName": "",
+      "contactLastName": "",
+      "addressLine1": "2nd Floor, Nos 464, Galle Road",
+      "contactPhoneNumber": null,
+      "city": "Colombo",
+      "stateCode": "LK",
+      "countryCode": "LK",
+      "ultimateConsigneeType": null,
+      "postalCode": "3",
+      "usppiirsNumber": null,
+      "usppiirsidType": "E"
+    },
+    {
+      "partyId": "11102",
+      "partyIdType": "E",
+      "partyType": "E",
+      "partyName": "Cabin and Shades FZC",
+      "contactFirstName": "",
+      "contactLastName": "",
+      "addressLine1": "PO BOX 9188\nSHARJAH / UAE",
+      "contactPhoneNumber": null,
+      "city": "SHARJAH",
+      "stateCode": "AE",
+      "countryCode": "AE",
+      "ultimateConsigneeType": null,
+      "postalCode": null,
+      "usppiirsNumber": null,
+      "usppiirsidType": "E"
+    }
+  ],
+  "transportation": {
+    "modeofTransport": "40",
+    "carrierCode": "32",
+    "vesselName": "ABSA - Aerolinhas Brasileiras / Tam Cargo",
+    "transportationDetails": [
+      {
+        "equipmentNumber": null,
+        "transportationReferenceNumber": "549-86"
+      }
+    ]
+  },
+  "commodityDetails": [
+    {
+      "commodityLineDetails": [
+        {
+          "productId": "",
+          "commodityAction": "",
+          "exportInformationCode": "OS",
+          "commodityDescription": "ABSORBAG",
+          "htsNumber": "",
+          "quantity1": "1",
+          "quantity1Uom": "NO",
+          "valueofGoods": "550000.000000",
+          "shippingWeight": "55.000"
+        }
+      ],
+      "licenseDetails": [
+        {
+          "licenseExemptionCode": "",
+          "exportLicenseNumber": ""
+        }
+      ]
+    },
+    {
+      "commodityLineDetails": [
+        {
+          "productId": "",
+          "commodityAction": "",
+          "exportInformationCode": "OS",
+          "commodityDescription": "AIRCRAFT PARTS",
+          "htsNumber": "Mixed wheat and rye.",
+          "quantity1": "5",
+          "quantity1Uom": "NO",
+          "valueofGoods": "25.000",
+          "shippingWeight": "0.000000"
+        }
+      ],
+      "licenseDetails": [
+        {
+          "licenseExemptionCode": "1",
+          "exportLicenseNumber": "2"
+        }
+      ]
+    }
+  ],
+  "createdBy": "Jyothsna",
+  "lastUpdatedOn": "2018-04-10T00:00:00",
+  "submittedOn": null
+
+}
