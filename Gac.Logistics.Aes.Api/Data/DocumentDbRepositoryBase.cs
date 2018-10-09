@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Configuration;
+
 
 namespace Gac.Logistics.Aes.Api.Data
 {
@@ -17,6 +19,17 @@ namespace Gac.Logistics.Aes.Api.Data
         protected string CollectionId = string.Empty;
         protected DocumentClient Client;
         protected DocumentCollection Collection;
+
+        protected DocumentDbRepositoryBase(IConfiguration configuration,string collectionId)
+        {
+            Endpoint = configuration["AppSettings:CosmosConnectionEndPoint"];
+            Key = configuration["AppSettings:CosmosKey"];
+            DatabaseId = configuration["AppSettings:DatabaseID"];
+            this.CollectionId = collectionId;
+            if (Client == null)
+                Client = new DocumentClient(new Uri(Endpoint), Key);
+
+        }
 
         public async Task<T> GetItemAsync<T>(string id) where T : class
         {
@@ -105,6 +118,11 @@ namespace Gac.Logistics.Aes.Api.Data
             return await Client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id), item);
         }
 
+        public async Task<Document> UpsertItemAsync<T>(string id, T item) where T : class
+        {
+            return await Client.UpsertDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id), item);
+        }
+
         public async Task<ResourceResponse<Attachment>> CreateAttachmentAsync(
             string attachmentsLink,
             object attachment,
@@ -147,7 +165,6 @@ namespace Gac.Logistics.Aes.Api.Data
 
         }
 
-        public abstract void Initialize(string collectionId);
     }
 
 

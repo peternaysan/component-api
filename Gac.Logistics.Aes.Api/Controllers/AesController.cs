@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Gac.Logistics.Aes.Api.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
@@ -11,12 +12,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
     public class AesController : ControllerBase
     {
         private readonly IDocumentDbRepository<AesDbRepository> aesDbRepository;
+        private readonly IMapper mapper;
 
-        public AesController(IDocumentDbRepository<AesDbRepository> aesDbRepository)
+        public AesController(IDocumentDbRepository<AesDbRepository> aesDbRepository, IMapper mapper)
         {
             this.aesDbRepository = aesDbRepository;
+            this.mapper = mapper;
 
-        }     
+
+        }
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(string id)
         {
@@ -24,7 +28,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest();
             }
-             aesDbRepository.Initialize("aes");
             var item = await this.aesDbRepository.GetItemAsync<Api.Model.Aes>(id);
             return new ObjectResult(item);
         }
@@ -35,7 +38,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
         public async Task<ActionResult> GetAesByBookingId(long bookingId, string instanceCode)
                 
         {          
-             aesDbRepository.Initialize("aes");
             var item = await aesDbRepository.GetItemsAsync<Api.Model.Aes>(obj => obj.BookingId == bookingId && obj.InstanceCode == instanceCode);
             return new ObjectResult(item.FirstOrDefault());
         }
@@ -43,23 +45,24 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost]
         public async Task<string> Post(Api.Model.Aes aes)
         {
-            aesDbRepository.Initialize("aes");
             var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj=>obj.BookingId==aes.BookingId && obj.InstanceCode==aes.InstanceCode);
-            var aesId = string.Empty;
-            if (item !=null && item.Any())
+            var enumerable = item as Model.Aes[] ?? item.ToArray();
+            if (enumerable.Any())
             {
-                var aesObj = item.FirstOrDefault();
-                var response = await aesDbRepository.UpdateItemAsync(aesObj.Id,aes);
-                aesId = response.Id;
+                var aesObj = enumerable.FirstOrDefault();
+                this.mapper.Map(aes, aesObj);
+                var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
+                return response.Id;
+
             }
             else
             {
                 var response = await aesDbRepository.CreateItemAsync(aes);
+                return response.Id;
 
             }
-
             
-            return document;
+            
         }
 
         // PUT api/values/5

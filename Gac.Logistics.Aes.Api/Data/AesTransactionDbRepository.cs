@@ -10,22 +10,13 @@ namespace Gac.Logistics.Aes.Api.Data
 {
     public class AesTransactionDbRepository:DocumentDbRepositoryBase<AesTransactionDbRepository>
     {
-        public AesTransactionDbRepository(IConfiguration configuration)
+        public AesTransactionDbRepository(IConfiguration configuration) : base(configuration,"aesTransaction")
         {
             Endpoint = configuration["AppSettings:CosmosConnectionEndPoint"];
             Key = configuration["AppSettings:CosmosKey"];
             DatabaseId = configuration["AppSettings:DatabaseID"];
         }
-        public override void Initialize(string collectionId)
-        {
-            if (Client == null)
-                Client = new DocumentClient(new Uri(Endpoint), Key);
-
-            if (CollectionId != null && CollectionId != collectionId)
-            {
-                CollectionId = collectionId;
-            }
-        }
+      
 
     }
 }

@@ -24,6 +24,8 @@ namespace Gac.Logistics.Aes.Api.Data
 
         Task<Document> UpdateItemAsync<T>(string id, T item) where T : class;
 
+        Task<Document> UpsertItemAsync<T>(string id, T item) where T : class;
+
         Task<ResourceResponse<Attachment>> CreateAttachmentAsync(string attachmentsLink, object attachment, RequestOptions options);
 
 
@@ -31,6 +33,5 @@ namespace Gac.Logistics.Aes.Api.Data
 
         Task DeleteItemAsync(string id);
 
-        void Initialize(string collectionId);
     }
 }
