@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Gac.Logistics.Aes.Api.Data
 {
-    public class AesDbRepository: DocumentDbRepositoryBase<AesDbRepository>,IDocumentDbRepository<AesDbRepository>
+    public class AesDbRepository: DocumentDbRepositoryBase<AesDbRepository>
     {
         public AesDbRepository(IConfiguration configuration)
         {          
@@ -18,17 +18,39 @@ namespace Gac.Logistics.Aes.Api.Data
         }
 
 
-        public override async Task InitAsync(string collectionId)
+        public override void Initialize(string collectionId)
         {
-            if (client == null)
-                client = new DocumentClient(new Uri(Endpoint), Key);
+            if (Client == null)
+                Client = new DocumentClient(new Uri(Endpoint), Key);
 
-            if (CollectionId != collectionId)
+            if (CollectionId != null && CollectionId != collectionId)
             {
                 CollectionId = collectionId;
-                //collection = await client.ReadDocumentCollectionAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId));
             }
         }
 
+        //private static async Task CreateCollectionIfNotExistsAsync()
+        //{
+        //    try
+        //    {
+        //        if (Client == null)
+        //            Client = new DocumentClient(new Uri(Endpoint), Key);
+        //        await Client.ReadDocumentCollectionAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId));
+        //    }
+        //    catch (DocumentClientException e)
+        //    {
+        //        if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+        //        {
+        //            await Client.CreateDocumentCollectionAsync(
+        //                                                       UriFactory.CreateDatabaseUri(DatabaseId),
+        //                                                       new DocumentCollection { Id = CollectionId },
+        //                                                       new RequestOptions { OfferThroughput = 1000 });
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+        //}
     }
 }

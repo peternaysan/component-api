@@ -15,60 +15,16 @@ namespace Gac.Logistics.Aes.Api.Data
         protected string Key = string.Empty;
         protected string DatabaseId = string.Empty;
         protected string CollectionId = string.Empty;
-        protected DocumentClient client;
-        protected DocumentCollection collection;
+        protected DocumentClient Client;
+        protected DocumentCollection Collection;
 
         public async Task<T> GetItemAsync<T>(string id) where T : class
         {
             try
             {
                 Document document =
-                    await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id));
+                    await Client.ReadDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id));
                 return (T)(dynamic)document;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        public async Task<T> GetItemAsync<T>(string id, string partitionKey) where T : class
-        {
-            try
-            {
-                Document document =
-                    await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
-                                                   new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
-                return (T)(dynamic)document;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        public async Task<Document> GetDocumentAsync(string id, string partitionKey)
-        {
-            try
-            {
-                Document document =
-                    await client.ReadDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
-                                                   new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
-                return document;
             }
             catch (DocumentClientException e)
             {
@@ -85,7 +41,7 @@ namespace Gac.Logistics.Aes.Api.Data
 
         public async Task<IEnumerable<T>> GetItemsAsync<T>() where T : class
         {
-            IDocumentQuery<T> query = client.CreateDocumentQuery<T>(
+            IDocumentQuery<T> query = Client.CreateDocumentQuery<T>(
                                                                     UriFactory.CreateDocumentCollectionUri(DatabaseId,
                                                                                                            CollectionId),
                                                                     new FeedOptions
@@ -106,7 +62,7 @@ namespace Gac.Logistics.Aes.Api.Data
 
         public async Task<IEnumerable<T>> GetItemsAsync<T>(Expression<Func<T, bool>> predicate) where T : class
         {
-            IDocumentQuery<T> query = client.CreateDocumentQuery<T>(
+            IDocumentQuery<T> query = Client.CreateDocumentQuery<T>(
                                                                     UriFactory.CreateDocumentCollectionUri(DatabaseId,
                                                                                                            CollectionId),
                                                                     new FeedOptions
@@ -128,25 +84,25 @@ namespace Gac.Logistics.Aes.Api.Data
 
         public IEnumerable<T> CreateDocumentQuery<T>(string query, FeedOptions options) where T : class
         {
-            return client.CreateDocumentQuery<T>(collection.DocumentsLink, query, options).AsEnumerable();
+            return Client.CreateDocumentQuery<T>(Collection.DocumentsLink, query, options).AsEnumerable();
         }
 
         public async Task<Document> CreateItemAsync<T>(T item) where T : class
         {
             var collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId);
-            return await client.CreateDocumentAsync(collectionUri,item);
+            return await Client.CreateDocumentAsync(collectionUri,item);
         }
 
         public async Task<Document> CreateItemAsync<T>(T item, RequestOptions options) where T : class
         {
-            return await client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
+            return await Client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
                                                     item,
                                                     options);
         }
 
         public async Task<Document> UpdateItemAsync<T>(string id, T item) where T : class
         {
-            return await client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id), item);
+            return await Client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id), item);
         }
 
         public async Task<ResourceResponse<Attachment>> CreateAttachmentAsync(
@@ -154,48 +110,33 @@ namespace Gac.Logistics.Aes.Api.Data
             object attachment,
             RequestOptions options)
         {
-            return await client.CreateAttachmentAsync(attachmentsLink, attachment, options);
-        }
-
-        public async Task<ResourceResponse<Attachment>> ReadAttachmentAsync(string attachmentLink, string partitionkey)
-        {
-            return await client.ReadAttachmentAsync(attachmentLink,
-                                                    new RequestOptions()
-                                                    {
-                                                        PartitionKey =
-                                                            new PartitionKey(partitionkey)
-                                                    });
+            return await Client.CreateAttachmentAsync(attachmentsLink, attachment, options);
         }
 
         public async Task<ResourceResponse<Attachment>> ReplaceAttachmentAsync(
             Attachment attachment,
             RequestOptions options)
         {
-            return await client.ReplaceAttachmentAsync(attachment, options);
+            return await Client.ReplaceAttachmentAsync(attachment, options);
         }
 
         public async Task DeleteItemAsync(string id)
         {
-            await client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id));
+            await Client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id));
         }
 
-        public async Task DeleteItemAsync(string id, string partitionKey)
-        {
-            await client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
-                                             new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
-        }
 
         public async Task<StoredProcedureResponse<dynamic>> ExecuteStoredProcedureAsync(
             string procedureName,
             string query,
             string partitionKey)
         {
-            StoredProcedure storedProcedure = client.CreateStoredProcedureQuery(collection.StoredProceduresLink)
+            StoredProcedure storedProcedure = Client.CreateStoredProcedureQuery(Collection.StoredProceduresLink)
                                                     .Where(sp => sp.Id == procedureName)
                                                     .AsEnumerable()
                                                     .FirstOrDefault();
 
-            return await client.ExecuteStoredProcedureAsync<dynamic>(storedProcedure.SelfLink,
+            return await Client.ExecuteStoredProcedureAsync<dynamic>(storedProcedure.SelfLink,
                                                                      new RequestOptions
                                                                      {
                                                                          PartitionKey =
@@ -206,7 +147,7 @@ namespace Gac.Logistics.Aes.Api.Data
 
         }
 
-        public abstract Task InitAsync(string collectionId);
+        public abstract void Initialize(string collectionId);
     }
 
 

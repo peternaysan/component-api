@@ -1,32 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Gac.Logistics.Aes.Api.Model;
 using Gac.Logistics.Aes.Api.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.SystemFunctions;
 
-namespace Gac.Logistics.Aes.Controllers
+namespace Gac.Logistics.Aes.Api.Controllers
 {
     [Route("api/aes")]
     [ApiController]
     public class AesController : ControllerBase
     {
-        private IDocumentDbRepository<AesDbRepository> aesDbRepository;
+        private readonly IDocumentDbRepository<AesDbRepository> aesDbRepository;
 
         public AesController(IDocumentDbRepository<AesDbRepository> aesDbRepository)
         {
             this.aesDbRepository = aesDbRepository;
 
-        }
-        // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
+        }     
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(string id)
         {
@@ -34,30 +24,42 @@ namespace Gac.Logistics.Aes.Controllers
             {
                 return BadRequest();
             }
-            await this.aesDbRepository.InitAsync("aes");
+             aesDbRepository.Initialize("aes");
             var item = await this.aesDbRepository.GetItemAsync<Api.Model.Aes>(id);
             return new ObjectResult(item);
         }
 
+
+        [HttpGet]
+        [Route("getaesbybookingId")]
+        public async Task<ActionResult> GetAesByBookingId(long bookingId, string instanceCode)
+                
+        {          
+             aesDbRepository.Initialize("aes");
+            var item = await aesDbRepository.GetItemsAsync<Api.Model.Aes>(obj => obj.BookingId == bookingId && obj.InstanceCode == instanceCode);
+            return new ObjectResult(item.FirstOrDefault());
+        }
         // POST api/values
         [HttpPost]
-        public async Task<ActionResult> Post(Api.Model.Aes aes)
+        public async Task<string> Post(Api.Model.Aes aes)
         {
-            await this.aesDbRepository.InitAsync("aes");
-            var item = await aesDbRepository.GetItemsAsync<Api.Model.Aes>(obj=>obj.BookingId==aes.BookingId && obj.InstanceCode==aes.InstanceCode);
-            Document document = null;
+            aesDbRepository.Initialize("aes");
+            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj=>obj.BookingId==aes.BookingId && obj.InstanceCode==aes.InstanceCode);
+            var aesId = string.Empty;
             if (item !=null && item.Any())
             {
                 var aesObj = item.FirstOrDefault();
-                document = await this.aesDbRepository.UpdateItemAsync(aesObj.Id,aesObj);
-
+                var response = await aesDbRepository.UpdateItemAsync(aesObj.Id,aes);
+                aesId = response.Id;
             }
             else
             {
-                document = await this.aesDbRepository.CreateItemAsync(aes);
+                var response = await aesDbRepository.CreateItemAsync(aes);
 
             }
-            return new ObjectResult(document);
+
+            
+            return document;
         }
 
         // PUT api/values/5
