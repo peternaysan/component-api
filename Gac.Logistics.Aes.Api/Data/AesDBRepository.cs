@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Gac.Logistics.Aes.Api.Data
 {
-    public class AesDbRepository: DocumentDbRepositoryBase<AesDbRepository>
+    public class AesDbRepository: DocumentDbRepositoryBase
     {
         public AesDbRepository(IConfiguration configuration):base(configuration,"aes")
         {          

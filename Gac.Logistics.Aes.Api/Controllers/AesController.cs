@@ -11,10 +11,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
     [ApiController]
     public class AesController : ControllerBase
     {
-        private readonly IDocumentDbRepository<AesDbRepository> aesDbRepository;
+        private readonly AesDbRepository aesDbRepository;
         private readonly IMapper mapper;
 
-        public AesController(IDocumentDbRepository<AesDbRepository> aesDbRepository, IMapper mapper)
+        public AesController(AesDbRepository aesDbRepository, IMapper mapper)
         {
             this.aesDbRepository = aesDbRepository;
             this.mapper = mapper;

@@ -9,8 +9,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
 {
     public class AesTransactionController : ControllerBase
     {
-        private readonly IDocumentDbRepository<AesTransactionDbRepository> aesTransactionDbRepository;
-        public AesTransactionController(IDocumentDbRepository<AesTransactionDbRepository> aesTransactionDbRepository)
+        private readonly AesTransactionDbRepository aesTransactionDbRepository;
+        public AesTransactionController(AesTransactionDbRepository aesTransactionDbRepository)
         {
             this.aesTransactionDbRepository = aesTransactionDbRepository;
 

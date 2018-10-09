@@ -8,7 +8,7 @@ using Microsoft.Azure.Documents.Client;
 
 namespace Gac.Logistics.Aes.Api.Data
 {
-    public interface IDocumentDbRepository<TDatabaseDb>
+    public interface IDocumentDbRepository
     {
         Task<T> GetItemAsync<T>(string id) where T : class;
 

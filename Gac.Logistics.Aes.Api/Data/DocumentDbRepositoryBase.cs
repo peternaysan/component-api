@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Gac.Logistics.Aes.Api.Data
 {
-    public abstract class DocumentDbRepositoryBase<TDatabaseDb> : IDocumentDbRepository<TDatabaseDb>
+    public abstract class DocumentDbRepositoryBase : IDocumentDbRepository
     {
         protected string Endpoint = string.Empty;
         protected string Key = string.Empty;
