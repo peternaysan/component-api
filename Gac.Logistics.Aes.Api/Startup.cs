@@ -65,9 +65,9 @@ namespace AesComponentApi
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("CorsPolicy");
             app.UseMvc();
             DocumentDbInitializer.Initialize(Configuration);
-            app.UseCors("CorsPolicy");
             app.UseSwagger();
             app.UseSwaggerUI(c =>
                              {
