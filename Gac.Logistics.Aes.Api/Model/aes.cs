@@ -36,9 +36,6 @@ namespace Gac.Logistics.Aes.Api.Model
         [JsonProperty("createdBy")]
         public string CreatedBy { get; set; }
 
-        [JsonProperty("lastUpdatedOn")]
-        public DateTime LastUpdatedOn { get; set; }
-
         [JsonProperty("submittedOn")]
         public DateTime? SubmittedOn { get; set; }
 

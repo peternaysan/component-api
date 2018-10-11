@@ -43,14 +43,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
         }
         // POST api/values
         [HttpPost]
-        public async Task<string> Post(Api.Model.Aes aes)
+        public async Task<string> Post(Api.Model.AesExternal aes)
         {
-            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj=>obj.BookingId==aes.BookingId && obj.InstanceCode==aes.InstanceCode);
+            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj=>obj.BookingId==aes.Aes.BookingId && obj.InstanceCode==aes.Aes.InstanceCode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
             {
                 var aesObj = enumerable.FirstOrDefault();
-                this.mapper.Map(aes, aesObj);
+                this.mapper.Map(aes.Aes, aesObj);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
                 return response.Id;
 
