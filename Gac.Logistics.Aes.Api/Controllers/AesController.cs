@@ -57,7 +57,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
             else
             {
-                var response = await aesDbRepository.CreateItemAsync(aes);
+                var response = await aesDbRepository.CreateItemAsync(aes.Aes);
                 return response.Id;
 
             }
