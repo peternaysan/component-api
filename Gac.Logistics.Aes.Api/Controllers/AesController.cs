@@ -19,7 +19,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
             this.aesDbRepository = aesDbRepository;
             this.mapper = mapper;
 
-
         }
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(string id)
@@ -36,7 +35,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpGet]
         [Route("getaesbybookingId")]
         public async Task<ActionResult> GetAesByBookingId(long bookingId, string instanceCode)
-                
         {          
             var item = await aesDbRepository.GetItemsAsync<Api.Model.Aes>(obj => obj.BookingId == bookingId && obj.InstanceCode == instanceCode);
             return new ObjectResult(item.FirstOrDefault());
