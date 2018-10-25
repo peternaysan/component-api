@@ -33,5 +33,8 @@ namespace Gac.Logistics.Aes.Api.Data
 
         Task DeleteItemAsync(string id);
 
+        Task CreateCollectionIfNotExists(string partitionkey);
+
+        Task CreateDatabaseIfNotExists();
     }
 }

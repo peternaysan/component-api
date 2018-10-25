@@ -1,26 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Configuration;
-
+using Microsoft.IdentityModel.Logging;
 
 namespace Gac.Logistics.Aes.Api.Data
 {
     public abstract class DocumentDbRepositoryBase : IDocumentDbRepository
     {
-        protected string Endpoint = string.Empty;
-        protected string Key = string.Empty;
-        protected string DatabaseId = string.Empty;
-        protected string CollectionId = string.Empty;
+        protected string Endpoint;
+        protected string Key;
+        protected string DatabaseId;
+        protected string CollectionId;
         protected DocumentClient Client;
         protected DocumentCollection Collection;
 
-        protected DocumentDbRepositoryBase(IConfiguration configuration,string collectionId)
+        protected DocumentDbRepositoryBase(IConfiguration configuration, string collectionId)
         {
             Endpoint = configuration["AppSettings:CosmosConnectionEndPoint"];
             Key = configuration["AppSettings:CosmosKey"];
@@ -103,7 +105,7 @@ namespace Gac.Logistics.Aes.Api.Data
         public async Task<Document> CreateItemAsync<T>(T item) where T : class
         {
             var collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId);
-            return await Client.CreateDocumentAsync(collectionUri,item);
+            return await Client.CreateDocumentAsync(collectionUri, item);
         }
 
         public async Task<Document> CreateItemAsync<T>(T item, RequestOptions options) where T : class
@@ -164,6 +166,68 @@ namespace Gac.Logistics.Aes.Api.Data
                                                                      query);
 
         }
+
+
+        public async Task CreateDatabaseIfNotExists()
+        {
+            try
+            {
+                await Client.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(DatabaseId));
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    await Client.CreateDatabaseAsync(new Database { Id = DatabaseId });
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task CreateCollectionIfNotExists(string partitionkey = null)
+        {
+            try
+            {
+                await Client.ReadDocumentCollectionAsync(UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId));
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    if (string.IsNullOrEmpty(partitionkey))
+                    {
+                        await Client.CreateDocumentCollectionAsync(
+                            UriFactory.CreateDatabaseUri(DatabaseId),
+                            new DocumentCollection { Id = CollectionId },
+                            new RequestOptions { OfferThroughput = 1000 });
+                    }
+                    else
+                    {
+                        await Client.CreateDocumentCollectionAsync(
+                            UriFactory.CreateDatabaseUri(DatabaseId),
+                            new DocumentCollection
+                            {
+                                Id = CollectionId,
+                                PartitionKey = new PartitionKeyDefinition
+                                {
+                                    Paths = new Collection<string> { "/" + partitionkey }
+                                }
+                            },
+                            new RequestOptions { OfferThroughput = 1000 });
+                    }
+
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+      
 
     }
 

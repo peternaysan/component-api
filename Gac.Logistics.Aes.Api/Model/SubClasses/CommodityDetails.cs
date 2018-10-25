@@ -11,10 +11,10 @@ namespace Gac.Logistics.Aes.Api.Model
     public class CommodityDetails
     {
         [JsonProperty("commodityLineDetails")]
-        public CommodityLineDetails[] CommodityLineDetails { get; set; }
+        public CommodityLineDetails CommodityLineDetails { get; set; }
 
         [JsonProperty("licenseDetails")]
-        public CommodityLicenseDetails[] LicenseDetails { get; set; }
+        public CommodityLicenseDetails LicenseDetails { get; set; }
     }
   
     
