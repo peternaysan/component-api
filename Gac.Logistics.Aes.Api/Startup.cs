@@ -57,6 +57,8 @@ namespace AesComponentApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            DocumentDbInitializer.Initialize(Configuration);
+            app.UseCors("CorsPolicy");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -67,19 +69,16 @@ namespace AesComponentApi
             }
 
             app.UseHttpsRedirection();
-            app.UseCors("CorsPolicy");
-            app.UseMvc();
-            DocumentDbInitializer.Initialize(Configuration);
             app.UseSwagger();
             app.UseSwaggerUI(c =>
                              {
-                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "AES API v1.0");
                              });
 
             var option = new RewriteOptions();
             option.AddRedirect("^$", "swagger");
             app.UseRewriter(option);
-
+            app.UseMvc();
         }
     }
 }
