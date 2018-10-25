@@ -16,7 +16,5 @@ namespace Gac.Logistics.Aes.Api.Data
             //Key = configuration["AppSettings:CosmosKey"];
             //DatabaseId = configuration["AppSettings:DatabaseID"];
         }
-
-     
     }
 }

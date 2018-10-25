@@ -8,6 +8,7 @@ using AutoMapper;
 using Gac.Logistics.Aes.Api.Data;
 using Gac.Logistics.Aes.Api.Model;
 using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace AesComponentApi
 {
@@ -73,6 +74,10 @@ namespace AesComponentApi
                              {
                                  c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
                              });
+
+            var option = new RewriteOptions();
+            option.AddRedirect("^$", "swagger");
+            app.UseRewriter(option);
 
         }
     }

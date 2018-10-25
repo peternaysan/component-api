@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Gac.Logistics.Aes.Api.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 
 namespace Gac.Logistics.Aes.Api.Controllers
 {
@@ -18,9 +17,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
         {
             this.aesDbRepository = aesDbRepository;
             this.mapper = mapper;
-
-
         }
+
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(string id)
         {
@@ -32,49 +30,60 @@ namespace Gac.Logistics.Aes.Api.Controllers
             return new ObjectResult(item);
         }
 
-
-        [HttpGet]
-        [Route("getaesbybookingId")]
-        public async Task<ActionResult> GetAesByBookingId(long bookingId, string instanceCode)
-                
-        {          
-            var item = await aesDbRepository.GetItemsAsync<Api.Model.Aes>(obj => obj.BookingId == bookingId && obj.InstanceCode == instanceCode);
-            return new ObjectResult(item.FirstOrDefault());
-        }
-        // POST api/values
+        // POST used by GF
         [HttpPost]
-        public async Task<string> Post(Api.Model.AesExternal aes)
+        public async Task<ActionResult> Post(Api.Model.AesExternal aes)
         {
-            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj=>obj.BookingId==aes.Aes.BookingId && obj.InstanceCode==aes.Aes.InstanceCode);
+            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.InstanceCode == aes.Aes.InstanceCode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
             {
                 var aesObj = enumerable.FirstOrDefault();
                 this.mapper.Map(aes.Aes, aesObj);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
-                return response.Id;
-
+                return Ok(new
+                {
+                    id = response.Id,
+                    bookingId = aes.Aes.BookingId,
+                    instanceCode = aes.Aes.InstanceCode
+                });
             }
             else
             {
                 var response = await aesDbRepository.CreateItemAsync(aes);
-                return response.Id;
-
+                return  Ok(new
+                {
+                    id = response.Id,
+                    bookingId = aes.Aes.BookingId,
+                    instanceCode = aes.Aes.InstanceCode
+                }); 
             }
-            
-            
         }
 
-        // PUT api/values/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult> Put(string id, [FromBody] Model.Aes aesObject)
         {
-        }
+            if (aesObject == null)
+            {
+                return BadRequest("Invalid aes object");
+            }
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest("Invalid aes id");
+            }
+
+            var item = await aesDbRepository.GetItemAsync<Model.Aes>(id);
+
+            if (item == null)
+            {
+                return NotFound("Invalid aes id");
+            }
+
+            this.mapper.Map(aesObject, item);
+            var response = await aesDbRepository.UpdateItemAsync(id, item);
+
+            return Ok();
         }
     }
 }
