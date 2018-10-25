@@ -39,6 +39,6 @@ namespace Gac.Logistics.Aes.Api.Model
         [JsonProperty("submittedOn")]
         public DateTime? SubmittedOn { get; set; }
 
-
+        public SubmissionStatus SubmissionStatus { get; set; }
     }
 }
