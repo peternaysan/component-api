@@ -24,8 +24,8 @@ namespace Gac.Logistics.Aes.Api.Model
         [JsonProperty("shipmentHeader")]
         public ShipmentHeader ShipmentHeader { get; set; }
 
-        [JsonProperty("shipmentParties")]
-        public List<ShipmentParty> ShipmentParties { get; set; }
+        [JsonProperty("shipmentParty")]
+        public List<ShipmentParty> ShipmentParty { get; set; }
 
         [JsonProperty("transportation")]
         public Transportation Transportation { get; set; }
@@ -39,6 +39,6 @@ namespace Gac.Logistics.Aes.Api.Model
         [JsonProperty("submittedOn")]
         public DateTime? SubmittedOn { get; set; }
 
-
+        public SubmissionStatus SubmissionStatus { get; set; }
     }
 }
