@@ -11,6 +11,9 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
         
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("displayName")]
+        public string DisplayName { get; set; }
         [JsonProperty("code")]
         public string Code { get; set; }
     }
