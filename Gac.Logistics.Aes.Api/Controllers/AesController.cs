@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using Gac.Logistics.Aes.Api.Data;
@@ -34,6 +36,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Api.Model.AesExternal aes)
         {
+            if (!Exists("bookingId", aes.Aes) || aes.Aes.BookingId <= 0)
+            {
+                return BadRequest("Invalid request object. BookingID is missing or having invalid value");
+            }
+            if (!Exists("instanceCode", aes.Aes)  ||string.IsNullOrEmpty(aes.Aes.InstanceCode))
+            {
+                return BadRequest("Invalid request object.Instance Code is missing or having invalid value");
+            }
             var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.InstanceCode == aes.Aes.InstanceCode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
@@ -50,7 +60,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
             else
             {
-                var response = await aesDbRepository.CreateItemAsync(aes);
+                var response = await aesDbRepository.CreateItemAsync(aes.Aes);
                 return  Ok(new
                 {
                     id = response.Id,
@@ -85,5 +95,30 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             return Ok();
         }
+
+        private static bool Exists(string propertyName, object srcObject, bool ignoreCase = true)
+        {
+
+            if (srcObject == null)
+                throw new System.ArgumentNullException(nameof(srcObject));
+
+            if ((propertyName == null) || (propertyName == String.Empty) || (propertyName.Length == 0))
+                throw new System.ArgumentException("Property name cannot be empty or null.");
+
+
+            PropertyInfo[] propertyInfos = srcObject.GetType().GetProperties();
+            if (ignoreCase)
+                propertyName = propertyName.ToLower();
+            foreach (PropertyInfo propInfo in propertyInfos)
+            {
+                if (propInfo.Name.ToLower().Equals(propertyName))
+                    return true;
+            }
+            return false;
+        }
+
     }
 }
+
+    
+
