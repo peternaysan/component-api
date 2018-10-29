@@ -8,6 +8,10 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 
         public string EquipmentNumber { get; set; }
 
+        [JsonProperty("sealNumber")]
+
+        public string SealNumber { get; set; }
+
         [JsonProperty("transportationReferenceNumber")]
 
         public string TransportationReferenceNumber { get; set; }

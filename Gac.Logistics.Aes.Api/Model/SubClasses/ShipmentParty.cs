@@ -48,5 +48,8 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 
         [JsonProperty("usppiirsidType")]
         public string UsppiirsidType { get; set; }
+
+        [JsonProperty("checkForDeniedParty")]
+        public string CheckForDeniedParty { get; set; }
     }
 }

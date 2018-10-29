@@ -30,5 +30,8 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 
         [JsonProperty("shippingWeight")]
         public string ShippingWeight { get; set; }
+
+        [JsonProperty("originofGoods")]
+        public string OriginofGoods { get; set; }
     }
 }

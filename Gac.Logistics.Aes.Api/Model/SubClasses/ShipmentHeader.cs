@@ -45,5 +45,14 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 
         [JsonProperty("hazmatIndicator")]
         public string HazmatIndicator { get; set; }
+
+        [JsonProperty("originalItn")]
+        public string OriginalItn { get; set; }
+
+        [JsonProperty("usToPuertoRico")]
+        public string UsToPuertoRico { get; set; }
+
+        [JsonProperty("puertoRicoToUs")]
+        public string PuertoRicoToUs { get; set; }
     }
 }
