@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Gac.Logistics.Aes.Api.Business;
 using Gac.Logistics.Aes.Api.Data;
+using Gac.Logistics.Aes.Api.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gac.Logistics.Aes.Api.Controllers
@@ -11,11 +14,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
     public class AesController : ControllerBase
     {
         private readonly AesDbRepository aesDbRepository;
+        private readonly IxService ixService;
         private readonly IMapper mapper;
 
-        public AesController(AesDbRepository aesDbRepository, IMapper mapper)
+        public AesController(AesDbRepository aesDbRepository,
+                            IxService ixService,
+                            IMapper mapper)
         {
             this.aesDbRepository = aesDbRepository;
+            this.ixService = ixService;
             this.mapper = mapper;
         }
 
@@ -34,7 +41,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Api.Model.AesExternal aes)
         {
-            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.InstanceCode == aes.Aes.InstanceCode);
+            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && 
+                                                                             obj.InstanceCode == aes.Aes.InstanceCode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
             {
@@ -50,13 +58,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
             else
             {
+                aes.Aes.SubmissionStatus = AesStatus.PENDING;
                 var response = await aesDbRepository.CreateItemAsync(aes);
-                return  Ok(new
+                return Ok(new
                 {
                     id = response.Id,
                     bookingId = aes.Aes.BookingId,
                     instanceCode = aes.Aes.InstanceCode
-                }); 
+                });
             }
         }
 
@@ -81,9 +90,43 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
             this.mapper.Map(aesObject, item);
+            item.SubmissionStatus = AesStatus.DRAFT;
+            item.DraftDate = DateTime.UtcNow.ToShortDateString();
             var response = await aesDbRepository.UpdateItemAsync(id, item);
 
             return Ok();
+        }
+
+        [HttpPost("submit")]
+        public async Task<ActionResult> Submit(Model.Aes aesObject)
+        {
+            if (aesObject == null)
+            {
+                return BadRequest("Invalid aes object");
+            }
+
+            var item = await aesDbRepository.GetItemAsync<Model.Aes>(aesObject.Id);
+            if (item == null)
+            {
+                return NotFound("Invalid aes id");
+            }
+
+            this.mapper.Map(aesObject, item);
+            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
+
+            // submit to IX
+            var sucess = await this.ixService.SubmitAes(aesObject);
+            if (sucess)
+            {
+                item.SubmissionStatus = AesStatus.SUBMITTED;
+                response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
+                return Ok(response);
+            }
+            else
+            {
+                return StatusCode(500, "An error occured while communicating with IX server");
+            }
+
         }
     }
 }

@@ -9,6 +9,8 @@ using Gac.Logistics.Aes.Api.Data;
 using Gac.Logistics.Aes.Api.Model;
 using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.AspNetCore.Rewrite;
+using Gac.Logistics.Aes.Api.Business;
+using System;
 
 namespace AesComponentApi
 {
@@ -25,9 +27,11 @@ namespace AesComponentApi
         public void ConfigureServices(IServiceCollection services)
         {
             // Repositories
-            services.AddScoped<AesDbRepository, AesDbRepository>();
-            services.AddScoped<AesTransactionDbRepository, AesTransactionDbRepository>();
-            services.AddScoped<CountryDbRepository, CountryDbRepository>();
+            services.AddTransient<AesDbRepository, AesDbRepository>();
+            services.AddTransient<AesTransactionDbRepository, AesTransactionDbRepository>();
+            services.AddTransient<CountryDbRepository, CountryDbRepository>();
+
+            services.AddTransient<IxService, IxService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddCors(options =>
@@ -39,6 +43,11 @@ namespace AesComponentApi
                                                                      .AllowCredentials());
                              });
 
+            services.AddHttpClient("ix", c =>
+            {
+                c.BaseAddress = new Uri(this.Configuration["AppSettings:IxEndpoint"]);
+                //c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+            });
 
             services.AddAutoMapper();
             services.AddSwaggerGen(c =>
