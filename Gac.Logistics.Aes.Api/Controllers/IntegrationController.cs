@@ -23,7 +23,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
         // POST used by GF
         [HttpPost("ackgetsresponse")]
-        public ActionResult AckGetsResponse(AckGetsReponse getsResponse)
+        public async Task<ActionResult> AckGetsResponse(AckGetsReponse getsResponse)
         {
             if (getsResponse == null)
             {
@@ -47,6 +47,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
                 item.SubmissionStatusDescription = getsResponse.ACK.StatusDescription;
+                await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else if (getsResponse.ACK.Status == GetsStatus.FAIL)
             {
@@ -55,6 +56,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     item.SubmissionStatusDescription = getsResponse.Error.ErrorDescription;
                 }
+                await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else
             {
