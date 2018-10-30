@@ -67,7 +67,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             else
             {
                 aes.Aes.SubmissionStatus = AesStatus.PENDING;
-                var response = await aesDbRepository.CreateItemAsync(aes);
+                var response = await aesDbRepository.CreateItemAsync(aes.Aes);
                 return Ok(new
                 {
                     id = response.Id,
