@@ -13,7 +13,7 @@ namespace Gac.Logistics.Aes.Api.Model
         public string Id { get; set; }
 
         [JsonProperty("bookingId")]
-        public long BookingId { get; set; }
+        public string BookingId { get; set; }
 
         [JsonProperty("instanceCode")]
         public string InstanceCode { get; set; }
@@ -44,6 +44,10 @@ namespace Gac.Logistics.Aes.Api.Model
 
         [JsonProperty("submissionStatus")]
         public string SubmissionStatus { get; set; }
+
+        [JsonProperty("submissionStatusDescription")]
+        public string SubmissionStatusDescription { get; set; }
+
         [JsonProperty("draftDate")]
         public string DraftDate { get; internal set; }
     }

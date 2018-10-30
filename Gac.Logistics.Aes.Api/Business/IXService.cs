@@ -16,7 +16,6 @@ namespace Gac.Logistics.Aes.Api.Business
 
         public async Task<bool> SubmitAes(Model.Aes aes)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "");
             var client = this.clientFactory.CreateClient("ix");
             var response = await client.PostAsJsonAsync(string.Empty, aes); // post to base address
             if (response.IsSuccessStatusCode)
@@ -25,6 +24,7 @@ namespace Gac.Logistics.Aes.Api.Business
             }
             else
             {
+                // to do log error
                 return false;
             }
         }

@@ -21,6 +21,7 @@ namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
     {
         public string ShipmentReferenceNumber { get; set; }
         public string Status { get; set; }
+        public string StatusDescription { get; set; }
     }
 
     public class ErrorMessage

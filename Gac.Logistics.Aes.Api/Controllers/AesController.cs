@@ -42,14 +42,25 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(Api.Model.AesExternal aes)
         {
-            if (!Exists("bookingId", aes.Aes) || aes.Aes.BookingId <= 0)
+            if (aes == null)
+            {
+                BadRequest("Invalid aes object");
+            }
+
+            if (aes.Aes == null)
+            {
+                BadRequest("Invalid aes object");
+            }
+
+            if (string.IsNullOrEmpty(aes.Aes.BookingId))
             {
                 return BadRequest("Invalid request object. BookingID is missing or having invalid value");
             }
-            if (!Exists("instanceCode", aes.Aes)  ||string.IsNullOrEmpty(aes.Aes.InstanceCode))
+            if (string.IsNullOrEmpty(aes.Aes.InstanceCode))
             {
                 return BadRequest("Invalid request object.Instance Code is missing or having invalid value");
             }
+
             var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.InstanceCode == aes.Aes.InstanceCode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
@@ -67,7 +78,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             else
             {
                 aes.Aes.SubmissionStatus = AesStatus.PENDING;
-                var response = await aesDbRepository.CreateItemAsync(aes);
+                var response = await aesDbRepository.CreateItemAsync(aes.Aes);
                 return Ok(new
                 {
                     id = response.Id,
@@ -77,21 +88,20 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Put(string id, [FromBody] Model.Aes aesObject)
+        [HttpPost("savedraft")]
+        public async Task<ActionResult> SaveDraft(Model.Aes aesObject)
         {
             if (aesObject == null)
             {
                 return BadRequest("Invalid aes object");
             }
 
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(aesObject.Id))
             {
                 return BadRequest("Invalid aes id");
             }
 
-            var item = await aesDbRepository.GetItemAsync<Model.Aes>(id);
-
+            var item = await aesDbRepository.GetItemAsync<Model.Aes>(aesObject.Id);
             if (item == null)
             {
                 return NotFound("Invalid aes id");
@@ -99,9 +109,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             this.mapper.Map(aesObject, item);
             item.SubmissionStatus = AesStatus.DRAFT;
-            item.DraftDate = DateTime.UtcNow.ToShortDateString();
-            var response = await aesDbRepository.UpdateItemAsync(id, item);
-
+            item.DraftDate = DateTime.UtcNow.ToString();
+            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
             return Ok();
         }
 
@@ -117,6 +126,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
             if (item == null)
             {
                 return NotFound("Invalid aes id");
+            }
+            if (string.IsNullOrEmpty(aesObject.ShipmentHeader.ShipmentReferenceNumber))
+            {
+                return NotFound("Invalid ShipmentReference Number");
             }
 
             this.mapper.Map(aesObject, item);
@@ -136,28 +149,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
         }
-
-        private static bool Exists(string propertyName, object srcObject, bool ignoreCase = true)
-        {
-
-            if (srcObject == null)
-                throw new System.ArgumentNullException(nameof(srcObject));
-
-            if ((propertyName == null) || (propertyName == String.Empty) || (propertyName.Length == 0))
-                throw new System.ArgumentException("Property name cannot be empty or null.");
-
-
-            PropertyInfo[] propertyInfos = srcObject.GetType().GetProperties();
-            if (ignoreCase)
-                propertyName = propertyName.ToLower();
-            foreach (PropertyInfo propInfo in propertyInfos)
-            {
-                if (propInfo.Name.ToLower().Equals(propertyName))
-                    return true;
-            }
-            return false;
-        }
-
     }
 }
 
