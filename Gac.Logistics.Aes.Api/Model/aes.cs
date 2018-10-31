@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Gac.Logistics.Aes.Api.Model.SubClasses;
 using Newtonsoft.Json;
@@ -50,5 +51,10 @@ namespace Gac.Logistics.Aes.Api.Model
 
         [JsonProperty("draftDate")]
         public string DraftDate { get; internal set; }
+
+        [JsonProperty("pic")]
+        public UserDto PicUser {get; set; }
+        [JsonProperty("submittedUser")]
+        public UserDto SubmittedUser { get; set; }
     }
 }
