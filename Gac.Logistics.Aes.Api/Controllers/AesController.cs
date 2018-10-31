@@ -51,6 +51,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 BadRequest("Invalid aes object");
             }
+            if (aes.Aes.ShipmentHeader !=null && string.IsNullOrEmpty(aes.Aes.ShipmentHeader.ShipmentReferenceNumber))
+            {
+                return BadRequest("Invalid request object. ShipmentReferenceNumber is missing or having invalid value");
+            }
 
             if (string.IsNullOrEmpty(aes.Aes.BookingId))
             {
