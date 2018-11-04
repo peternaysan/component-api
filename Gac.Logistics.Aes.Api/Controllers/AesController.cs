@@ -140,7 +140,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
             // submit to IX
-            var sucess = await this.ixService.SubmitAes(aesObject);
+            var getsAes = (GetsAes) item;
+            var sucess = await this.ixService.SubmitAes(getsAes);
             if (sucess)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;

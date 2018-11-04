@@ -14,7 +14,7 @@ namespace Gac.Logistics.Aes.Api.Business
             this.clientFactory = clientFactory;
         }
 
-        public async Task<bool> SubmitAes(Model.Aes aes)
+        public async Task<bool> SubmitAes(Model.GetsAes aes)
         {
             var client = this.clientFactory.CreateClient("ix");
             var response = await client.PostAsJsonAsync(string.Empty, aes); // post to base address
@@ -22,11 +22,8 @@ namespace Gac.Logistics.Aes.Api.Business
             {
                 return true;
             }
-            else
-            {
-                // to do log error
-                return false;
-            }
+            // to do log error
+            return false;
         }
     }
 }

@@ -51,5 +51,8 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 
         [JsonProperty("checkForDeniedParty")]
         public string CheckForDeniedParty { get; set; }
+
+        [JsonProperty("toBeSoldenRouteIndicator")]
+        public string ToBeSoldenRouteIndicator { get; set; }
     }
 }
