@@ -11,6 +11,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.AspNetCore.Rewrite;
 using Gac.Logistics.Aes.Api.Business;
 using System;
+using Gac.Logistics.Aes.Api.Hubs;
 
 namespace AesComponentApi
 {
@@ -61,6 +62,7 @@ namespace AesComponentApi
                                    });
             // Make Configuration injectable
             services.AddSingleton(Configuration);
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,6 +89,10 @@ namespace AesComponentApi
             var option = new RewriteOptions();
             option.AddRedirect("^$", "swagger");
             app.UseRewriter(option);
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<AesHub>("/aesHub");
+            });
             app.UseMvc();
         }
     }

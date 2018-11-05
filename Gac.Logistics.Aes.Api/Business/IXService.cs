@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -9,18 +10,45 @@ namespace Gac.Logistics.Aes.Api.Business
     public class IxService
     {
         private readonly IHttpClientFactory clientFactory;
-        public IxService(IHttpClientFactory clientFactory)
+        public IConfiguration Configuration { get; }
+
+        public IxService(IHttpClientFactory clientFactory, IConfiguration configuration)
         {
             this.clientFactory = clientFactory;
+            this.Configuration = configuration;
         }
 
         public async Task<bool> SubmitAes(Model.GetsAes aes)
         {
-            var client = this.clientFactory.CreateClient("ix");
-            var response = await client.PostAsJsonAsync(string.Empty, aes); // post to base address
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return true;
+
+                //System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+                using (var httpClientHandler = new HttpClientHandler())
+                {
+                    httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+                    using (var client = new HttpClient(httpClientHandler))
+                    {
+                        // Make your request...
+                        var ss = this.Configuration["AppSettings:IxEndpoint"];
+                        var response = await client.PostAsJsonAsync(ss, aes); // post to base address
+                        if (response.IsSuccessStatusCode)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                //var client = this.clientFactory.CreateClient("ix");
+                //var response = await client.PostAsJsonAsync(string.Empty, aes); // post to base address
+                //if (response.IsSuccessStatusCode)
+                //{
+                //    return true;
+                //}
+            }
+            catch (Exception ex)
+            {
+                var err = ex.ToString();
             }
             // to do log error
             return false;

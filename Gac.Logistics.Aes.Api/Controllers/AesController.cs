@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Gac.Logistics.Aes.Api.Business;
 using Gac.Logistics.Aes.Api.Data;
+using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Gac.Logistics.Aes.Api.Controllers
 {
@@ -17,14 +19,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
         private readonly AesDbRepository aesDbRepository;
         private readonly IxService ixService;
         private readonly IMapper mapper;
+        private readonly IHubContext<AesHub> hubContext;
 
         public AesController(AesDbRepository aesDbRepository,
                             IxService ixService,
-                            IMapper mapper)
+                            IMapper mapper,
+                            IHubContext<AesHub> hubContext)
         {
             this.aesDbRepository = aesDbRepository;
             this.ixService = ixService;
             this.mapper = mapper;
+            this.hubContext = hubContext;
         }
 
         [HttpGet("{id}")]
@@ -95,6 +100,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost("savedraft")]
         public async Task<ActionResult> SaveDraft(Model.Aes aesObject)
         {
+            await hubContext.Clients.All.SendAsync("hi", "subin", "xxxxxxxxxxxxxxx");
+            //await new AesHub().SendMessage("subin", "test");
             if (aesObject == null)
             {
                 return BadRequest("Invalid aes object");
@@ -115,12 +122,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
             item.SubmissionStatus = AesStatus.DRAFT;
             item.DraftDate = DateTime.UtcNow.ToString();
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
+
+
             return Ok();
         }
 
         [HttpPost("submit")]
         public async Task<ActionResult> Submit(Model.Aes aesObject)
         {
+
             if (aesObject == null)
             {
                 return BadRequest("Invalid aes object");
