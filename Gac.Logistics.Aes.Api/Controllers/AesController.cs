@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -19,17 +20,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
         private readonly AesDbRepository aesDbRepository;
         private readonly IxService ixService;
         private readonly IMapper mapper;
-        private readonly IHubContext<AesHub> hubContext;
 
         public AesController(AesDbRepository aesDbRepository,
                             IxService ixService,
-                            IMapper mapper,
-                            IHubContext<AesHub> hubContext)
+                            IMapper mapper)
         {
             this.aesDbRepository = aesDbRepository;
             this.ixService = ixService;
             this.mapper = mapper;
-            this.hubContext = hubContext;
         }
 
         [HttpGet("{id}")]
@@ -100,8 +98,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost("savedraft")]
         public async Task<ActionResult> SaveDraft(Model.Aes aesObject)
         {
-            await hubContext.Clients.All.SendAsync("hi", "subin", "xxxxxxxxxxxxxxx");
-            //await new AesHub().SendMessage("subin", "test");
             if (aesObject == null)
             {
                 return BadRequest("Invalid aes object");
@@ -141,9 +137,38 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return NotFound("Invalid aes id");
             }
+
             if (string.IsNullOrEmpty(aesObject.ShipmentHeader.ShipmentReferenceNumber))
             {
-                return NotFound("Invalid ShipmentReference Number");
+                return BadRequest("Invalid ShipmentReference Number");
+            }
+
+            if (aesObject.SubmissionStatus == "SUBMITTED")
+            {
+                return BadRequest("Already submited, waiting for acknowledgement !!");
+            }
+
+            // message id
+            aesObject.Header.MessageId = aesObject.Id;
+            // status notification email // pic
+            aesObject.StatusNotification = new List<Model.SubClasses.StatusNotification>();
+            if (aesObject.PicUser != null && !string.IsNullOrEmpty(aesObject.PicUser.email))
+            {
+                aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
+                {
+                    Name = aesObject.PicUser.displayName,
+                    Email = aesObject.PicUser.email
+                });
+            }
+             // submitted user
+            if (aesObject.SubmittedUser != null && !string.IsNullOrEmpty(aesObject.SubmittedUser.email))
+            {
+                aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
+                {
+                    Name = aesObject.SubmittedUser.displayName,
+                    Email = aesObject.SubmittedUser.email
+                });
+
             }
 
             this.mapper.Map(aesObject, item);
@@ -151,10 +176,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             // submit to IX
             var getsAes = (GetsAes) item;
+
+
             var sucess = await this.ixService.SubmitAes(getsAes);
             if (sucess)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
+                item.SubmissionStatusDescription = "Waiting for confirmation from GETS";
                 response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
                 return Ok(response);
             }
