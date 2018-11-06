@@ -9,6 +9,10 @@ namespace Gac.Logistics.Aes.Api.Model
 {
     public class GetsAes
     {
+        public GetsAes()
+        {
+        }
+
         [JsonProperty("header")]
         public AesHeader Header { get; set; }
 
@@ -33,7 +37,7 @@ namespace Gac.Logistics.Aes.Api.Model
         [JsonProperty("submissionStatusDescription")]
         public string SubmissionStatusDescription { get; set; }
         [JsonProperty("statusNotification")]
-        public StatusNotification StatusNotification { get; set; }
+        public List<StatusNotification> StatusNotification { get; set; }
 
     }
 }

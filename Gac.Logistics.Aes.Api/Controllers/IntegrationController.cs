@@ -2,9 +2,11 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Gac.Logistics.Aes.Api.Data;
+using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Model;
 using Gac.Logistics.Aes.Api.Model.Acknowledgements;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Gac.Logistics.Aes.Api.Controllers
 {
@@ -14,11 +16,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
     {
         private readonly AesDbRepository aesDbRepository;
         private readonly IMapper mapper;
+        private readonly IHubContext<AesHub> hubContext;
 
-        public IntegrationController(AesDbRepository aesDbRepository, IMapper mapper)
+        public IntegrationController(AesDbRepository aesDbRepository, IMapper mapper,
+                                     IHubContext<AesHub> hubContext)
         {
             this.aesDbRepository = aesDbRepository;
             this.mapper = mapper;
+            this.hubContext = hubContext;
         }
 
         // POST used by GF
@@ -42,7 +47,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.ACK.ShipmentReferenceNumber)
                                 .Result
-                                .First();
+                                .FirstOrDefault();
+            if (item == null)
+            {
+                return BadRequest($"Invalid shipment reference no ${getsResponse.ACK.ShipmentReferenceNumber}");
+            }
+
             if (getsResponse.ACK.Status == GetsStatus.SUCCESS)
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
@@ -63,6 +73,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid status value");
             }
 
+            await hubContext.Clients.All.SendAsync("getscallback", getsResponse);
             return Ok(true);
         }
 
