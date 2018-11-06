@@ -31,6 +31,7 @@ namespace AesComponentApi
             services.AddTransient<AesDbRepository, AesDbRepository>();
             services.AddTransient<AesTransactionDbRepository, AesTransactionDbRepository>();
             services.AddTransient<CountryDbRepository, CountryDbRepository>();
+            services.AddTransient<HtsDbRepository, HtsDbRepository>();
 
             services.AddTransient<IxService, IxService>();
 

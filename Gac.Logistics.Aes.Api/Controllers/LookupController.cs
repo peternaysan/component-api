@@ -15,11 +15,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
     public class LookUpController
     {
         private readonly CountryDbRepository countryDbRepository;
+        private readonly HtsDbRepository htsDbRepository;
+
         private readonly IMapper mapper;
 
-        public LookUpController(CountryDbRepository countryDbRepository, IMapper mapper)
+        public LookUpController(CountryDbRepository countryDbRepository, IMapper mapper, HtsDbRepository htsDbRepository)
         {
             this.countryDbRepository = countryDbRepository;
+            this.htsDbRepository = htsDbRepository;
             this.mapper = mapper;
 
         }
@@ -30,6 +33,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
             var items =  await this.countryDbRepository.GetItemsAsync<Country>(obj=>obj.Name.ToLower().Contains(country.ToLower()));
             var states = items.Select(obj => obj.States).First();
             return new ObjectResult(states);
+        }
+
+        [HttpGet("gethtscode")]
+        public async Task<ActionResult> GetHtsCode(string term)
+        {
+            var items = await this.htsDbRepository.GetItemsAsync<HtsCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) ||obj.Code.ToLower().Contains(term.ToLower()));            
+            return new ObjectResult(items);
         }
 
     }
