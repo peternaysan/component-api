@@ -78,8 +78,41 @@ namespace Gac.Logistics.Aes.Api.Controllers
         }
 
         [HttpPost("ackaescustomsresponse")]
-        public ActionResult AckAesCustomsResponse(dynamic customsReponse)
+        public async Task<ActionResult> AckAesCustomsResponse(AesCustomsResponse customsReponse)
         {
+            if (customsReponse == null)
+            {
+                return BadRequest("Invalid gets response object");
+            }
+
+            if (customsReponse.ftpcommodityShipment == null)
+            {
+                return BadRequest("Invalid gets response object, ftpcommodityShipment node is missing");
+            }
+
+            if (string.IsNullOrEmpty(customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber))
+            {
+                return BadRequest("Invalid gets response object, ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber is missing");
+            }
+
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == 
+                                 customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
+                                .Result
+                                .FirstOrDefault();
+            if (item == null)
+            {
+                return BadRequest($"Invalid shipment reference no ${customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
+            }
+
+            if (customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse != null)
+            {
+                item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
+                item.SubmissionStatusDescription = customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse.narrativeText;
+                item.ShipmentHeader.OriginalItn = customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse.internalTransactionNumber;
+                await aesDbRepository.UpdateItemAsync(item.Id, item);
+            }
+
+            await hubContext.Clients.All.SendAsync("customscallback", customsReponse);
             return Ok(true);
         }
     }
