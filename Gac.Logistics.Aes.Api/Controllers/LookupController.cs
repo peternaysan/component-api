@@ -16,14 +16,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
     {
         private readonly CountryDbRepository countryDbRepository;
         private readonly HtsDbRepository htsDbRepository;
+        private readonly LicenseExemptionCodeDbRepository licenseExemptionCodeDbRepository;
+
 
         private readonly IMapper mapper;
 
-        public LookUpController(CountryDbRepository countryDbRepository, IMapper mapper, HtsDbRepository htsDbRepository)
+        public LookUpController(CountryDbRepository countryDbRepository, IMapper mapper, HtsDbRepository htsDbRepository, LicenseExemptionCodeDbRepository licenseExemptionCodeDbRepository)
         {
             this.countryDbRepository = countryDbRepository;
             this.htsDbRepository = htsDbRepository;
             this.mapper = mapper;
+            this.licenseExemptionCodeDbRepository = licenseExemptionCodeDbRepository;
 
         }
 
@@ -45,7 +48,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpGet("getlicexemptioncode")]
         public async Task<ActionResult> GetLicenseExemptionCode(string term)
         {
-            var items = await this.htsDbRepository.GetItemsAsync<LicenseExemptionCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) || obj.Code.ToLower().Contains(term.ToLower()));
+            var items = await this.LicenseExemptionCodeDbRepository.GetItemsAsync<LicenseExemptionCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) || obj.Code.ToLower().Contains(term.ToLower()));
             return new ObjectResult(items);
         }
 
