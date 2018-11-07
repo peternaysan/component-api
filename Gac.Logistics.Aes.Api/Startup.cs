@@ -90,7 +90,7 @@ namespace AesComponentApi
             app.UseSwagger();
             app.UseSwaggerUI(c =>
                              {
-                                 c.SwaggerEndpoint("/aesapi/swagger/v1/swagger.json", "AES API v1.0");
+                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "AES API v1.0");
                              });
 
             var option = new RewriteOptions();
