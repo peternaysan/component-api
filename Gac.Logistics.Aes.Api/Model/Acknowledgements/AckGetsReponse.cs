@@ -5,25 +5,27 @@ using System.Threading.Tasks;
 
 namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
 {
-    public class AckCustomsReponse
-    {
-        public Ack ACK { get; set; }
-        public ErrorMessage Error { get; set; }
-    }
+
 
     public class AckGetsReponse
     {
-        public Ack ACK { get; set; }
-        public ErrorMessage Error { get; set; }
+        public AckWrapper Ack { get; set; }
+       
     }
 
-    public class Ack
+    public class AckWrapper
+    {
+        public AesWrapper Aes { get; set; }
+    }
+
+    public class AesWrapper
     {
         public string ShipmentReferenceNumber { get; set; }
         public string Status { get; set; }
         public string StatusDescription { get; set; }
+        public ErrorMessage Error { get; set; }
     }
-
+  
     public class ErrorMessage
     {
         public string ErrorCode { get; set; }

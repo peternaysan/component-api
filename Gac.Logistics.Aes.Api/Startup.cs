@@ -27,11 +27,17 @@ namespace AesComponentApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            
+            services.Configure<IISOptions>(options =>
+                                           {
+                                               options.ForwardClientCertificate = false;
+                                           });
             // Repositories
             services.AddTransient<AesDbRepository, AesDbRepository>();
             services.AddTransient<AesTransactionDbRepository, AesTransactionDbRepository>();
             services.AddTransient<CountryDbRepository, CountryDbRepository>();
             services.AddTransient<HtsDbRepository, HtsDbRepository>();
+            services.AddTransient<LicenseExemptionCodeDbRepository, LicenseExemptionCodeDbRepository>();
 
             services.AddTransient<IxService, IxService>();
 
@@ -84,7 +90,7 @@ namespace AesComponentApi
             app.UseSwagger();
             app.UseSwaggerUI(c =>
                              {
-                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "AES API v1.0");
+                                 c.SwaggerEndpoint("/aesapi/swagger/v1/swagger.json", "AES API v1.0");
                              });
 
             var option = new RewriteOptions();

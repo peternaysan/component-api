@@ -5,6 +5,7 @@ using Gac.Logistics.Aes.Api.Data;
 using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Model;
 using Gac.Logistics.Aes.Api.Model.Acknowledgements;
+using Gac.Logistics.Aes.Api.Model.SubClasses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -35,36 +36,39 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid gets response object");
             }
 
-            if (getsResponse.ACK == null)
+            if (getsResponse.Ack == null)
             {
-                return BadRequest("Invalid gets response object, ACK is missing");
+                return BadRequest("Invalid gets response object, AES is missing");
+            }
+            if (getsResponse.Ack.Aes == null)
+            {
+                return BadRequest("Invalid gets response object, AES is missing");
+            }
+            if (string.IsNullOrEmpty(getsResponse.Ack.Aes.ShipmentReferenceNumber))
+            {
+                return BadRequest("Invalid gets response object, ACK->AES->ShipmentReferenceNumber is missing");
             }
 
-            if (string.IsNullOrEmpty(getsResponse.ACK.ShipmentReferenceNumber))
-            {
-                return BadRequest("Invalid gets response object, ACK->ShipmentReferenceNumber is missing");
-            }
-
-            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.ACK.ShipmentReferenceNumber)
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.Ack.Aes.ShipmentReferenceNumber)
                                 .Result
                                 .FirstOrDefault();
             if (item == null)
             {
-                return BadRequest($"Invalid shipment reference no ${getsResponse.ACK.ShipmentReferenceNumber}");
+                return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentReferenceNumber}");
             }
 
-            if (getsResponse.ACK.Status == GetsStatus.SUCCESS)
+            if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
-                item.SubmissionStatusDescription = getsResponse.ACK.StatusDescription;
+                item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
-            else if (getsResponse.ACK.Status == GetsStatus.FAIL)
+            else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
             {
                 item.SubmissionStatus = AesStatus.GETSREJECTED;
-                if (getsResponse.Error != null)
+                if (getsResponse.Ack.Aes.Error != null)
                 {
-                    item.SubmissionStatusDescription = getsResponse.Error.ErrorDescription;
+                    item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.ErrorDescription;
                 }
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
@@ -99,13 +103,16 @@ namespace Gac.Logistics.Aes.Api.Controllers
                                  customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
                                 .Result
                                 .FirstOrDefault();
+           
             if (item == null)
             {
                 return BadRequest($"Invalid shipment reference no ${customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
             }
+            item.SubmissionResponse = new SubmissionStatus();
 
             if (customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse != null)
             {
+                item.SubmissionResponse.Status = "SUCCESS";
                 item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
                 item.SubmissionStatusDescription = customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse.narrativeText;
                 item.ShipmentHeader.OriginalItn = customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse.internalTransactionNumber;
