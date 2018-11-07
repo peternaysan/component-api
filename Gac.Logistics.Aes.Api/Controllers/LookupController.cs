@@ -42,5 +42,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
             return new ObjectResult(items);
         }
 
+        [HttpGet("getlicexemptioncode")]
+        public async Task<ActionResult> GetLicenseExemptionCode(string term)
+        {
+            var items = await this.htsDbRepository.GetItemsAsync<LicenseExemptionCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) || obj.Code.ToLower().Contains(term.ToLower()));
+            return new ObjectResult(items);
+        }
+
     }
 }
