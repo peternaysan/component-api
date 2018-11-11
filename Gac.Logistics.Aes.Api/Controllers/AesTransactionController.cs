@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Gac.Logistics.Aes.Api.Controllers
 {
+    [Route("api/aestransactions")]
+    [ApiController]
     public class AesTransactionController : ControllerBase
     {
         private readonly AesTransactionDbRepository aesTransactionDbRepository;
@@ -23,8 +25,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest();
             }
-            var item = await this.aesTransactionDbRepository.GetItemAsync<Api.Model.AesTransaction>(id);
-            return new ObjectResult(item);
+            var items = await this.aesTransactionDbRepository.GetItemsAsync<Api.Model.AesTransaction>(x=>x.AesDetailEntity.Id == id);
+            return new ObjectResult(items);
         }
     }
 }
