@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Gac.Logistics.Aes.Api.Model
 {
-    public class Aes:GetsAes
+    public class Aes : GetsAes
     {
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -24,16 +24,7 @@ namespace Gac.Logistics.Aes.Api.Model
 
         [JsonProperty("submittedOn")]
         public DateTime? SubmittedOn { get; set; }
-
-        [JsonProperty("submissionResponse")]
-        public SubmissionStatus SubmissionResponse { get; set; }
-
-        [JsonProperty("submissionStatus")]
-        public string SubmissionStatus { get; set; }
-
-        [JsonProperty("submissionStatusDescription")]
-        public string SubmissionStatusDescription { get; set; }
-
+        
         [JsonProperty("draftDate")]
         public string DraftDate { get; internal set; }
 
