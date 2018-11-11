@@ -63,7 +63,7 @@ namespace AesComponentApi
                                        c.SwaggerDoc("v1", new Info
                                                           {
                                                               Version = "v1",
-                                                              Title = "Gac Losgistics Aes Api",
+                                                              Title = "Gac Logistics Aes Api",
                                                               Description = "Web api for the aes component",                                                             
                                                           });
                                    });
@@ -90,6 +90,7 @@ namespace AesComponentApi
             app.UseSwagger();
             app.UseSwaggerUI(c =>
                              {
+                                 //c.SwaggerEndpoint("/aesapi/swagger/v1/swagger.json", "AES API v1.0");
                                  c.SwaggerEndpoint("/swagger/v1/swagger.json", "AES API v1.0");
                              });
 

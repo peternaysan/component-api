@@ -44,17 +44,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid gets response object, AES is missing");
             }
-            if (string.IsNullOrEmpty(getsResponse.Ack.Aes.ShipmentReferenceNumber))
+            if (string.IsNullOrEmpty(getsResponse.Ack.Aes.ShipmentRefNo))
             {
                 return BadRequest("Invalid gets response object, ACK->AES->ShipmentReferenceNumber is missing");
             }
 
-            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.Ack.Aes.ShipmentReferenceNumber)
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.Ack.Aes.ShipmentRefNo)
                                 .Result
                                 .FirstOrDefault();
             if (item == null)
             {
-                return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentReferenceNumber}");
+                return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo}");
             }
 
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
@@ -66,9 +66,9 @@ namespace Gac.Logistics.Aes.Api.Controllers
             else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
             {
                 item.SubmissionStatus = AesStatus.GETSREJECTED;
-                if (getsResponse.Ack.Aes.Error != null)
+                if (getsResponse.Ack.Aes.Error != null && getsResponse.Ack.Aes.Error.Count>0)
                 {
-                    item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.ErrorDescription;
+                    item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.First().ErrorDescription;
                 }
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }

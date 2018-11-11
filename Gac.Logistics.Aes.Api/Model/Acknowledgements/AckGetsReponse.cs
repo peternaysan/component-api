@@ -20,10 +20,10 @@ namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
 
     public class AesWrapper
     {
-        public string ShipmentReferenceNumber { get; set; }
+        public string ShipmentRefNo { get; set; }
         public string Status { get; set; }
         public string StatusDescription { get; set; }
-        public ErrorMessage Error { get; set; }
+        public List<ErrorMessage> Error { get; set; }
     }
   
     public class ErrorMessage

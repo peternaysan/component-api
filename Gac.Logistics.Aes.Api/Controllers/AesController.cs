@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 
 namespace Gac.Logistics.Aes.Api.Controllers
 {
@@ -20,14 +22,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
         private readonly AesDbRepository aesDbRepository;
         private readonly IxService ixService;
         private readonly IMapper mapper;
+        public IConfiguration Configuration { get; }
 
         public AesController(AesDbRepository aesDbRepository,
                             IxService ixService,
-                            IMapper mapper)
+                            IMapper mapper,
+                            IConfiguration configuration)
         {
             this.aesDbRepository = aesDbRepository;
             this.ixService = ixService;
             this.mapper = mapper;
+            this.Configuration = configuration;
         }
 
         [HttpGet("{id}")]
@@ -152,21 +157,22 @@ namespace Gac.Logistics.Aes.Api.Controllers
             aesObject.Header.MessageId = aesObject.Id;
             // status notification email // pic
             aesObject.StatusNotification = new List<Model.SubClasses.StatusNotification>();
-            if (aesObject.PicUser != null && !string.IsNullOrEmpty(aesObject.PicUser.email))
+            if (aesObject.PicUser != null && !string.IsNullOrEmpty(aesObject.PicUser.Email))
             {
                 aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
                 {
-                    Name = aesObject.PicUser.displayName,
-                    Email = aesObject.PicUser.email
+                    Name = aesObject.PicUser.FirstName,
+                    NotificationType = "ALL",
+                    Email = aesObject.PicUser.Email
                 });
             }
              // submitted user
-            if (aesObject.SubmittedUser != null && !string.IsNullOrEmpty(aesObject.SubmittedUser.email))
+            if (aesObject.SubmittedUser != null && !string.IsNullOrEmpty(aesObject.SubmittedUser.Email))
             {
                 aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
                 {
-                    Name = aesObject.SubmittedUser.displayName,
-                    Email = aesObject.SubmittedUser.email
+                    Name = aesObject.SubmittedUser.FirstName,
+                    Email = aesObject.SubmittedUser.Email
                 });
 
             }
@@ -175,11 +181,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
             // submit to IX
-            var getsAes = (GetsAes) item;
-
-
-            var sucess = await this.ixService.SubmitAes(getsAes);
-            if (sucess)
+            var getsAes = (GetsAes) item;            
+            getsAes.Header.Signature = this.Configuration["AppSettings:Signature"]; ;
+            getsAes.Header.Sentat = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
+            getsAes.Header.Senderappcode = this.Configuration["AppSettings:SenderAppCode"]; 
+            var success = await this.ixService.SubmitAes(getsAes);
+            if (success)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
                 item.SubmissionStatusDescription = "Waiting for confirmation from GETS";

@@ -1,9 +1,13 @@
-﻿namespace Gac.Logistics.Aes.Api.Model.SubClasses
+﻿using Newtonsoft.Json;
+
+namespace Gac.Logistics.Aes.Api.Model.SubClasses
 {
     public class UserDto
     {
-        public string displayName { get; set; }
-        public string Id { get; set; }
-        public string email { get; set; }
+        [JsonProperty("FirstName")]
+        public string FirstName { get; set; }
+
+        [JsonProperty("email")]
+        public string Email { get; set; }
     }
 }

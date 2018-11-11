@@ -9,10 +9,6 @@ namespace Gac.Logistics.Aes.Api.Model
 {
     public class GetsAes
     {
-        public GetsAes()
-        {
-        }
-
         [JsonProperty("header")]
         public AesHeader Header { get; set; }
 
