@@ -23,8 +23,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest();
             }
-            var item = await this.aesTransactionDbRepository.GetItemAsync<Api.Model.AesTransaction>(id);
-            return new ObjectResult(item);
+            var items = await this.aesTransactionDbRepository.GetItemsAsync<Api.Model.AesTransaction>(x=>x.Id == id);
+            return new ObjectResult(items);
         }
     }
 }
