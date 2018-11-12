@@ -10,8 +10,10 @@ using Gac.Logistics.Aes.Api.Data;
 using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Gac.Logistics.Aes.Api.Controllers
 {
@@ -73,6 +75,22 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid request object.Instance Code is missing or having invalid value");
             }
 
+            foreach (var party in aes.Aes.ShipmentParty) 
+            {
+                if (party.PartyType == "C" && string.IsNullOrEmpty(party.PartyIdType))
+                {
+                    return BadRequest("Invalid request object. ID Number Type is missing for Ultimate Consignee");
+                }
+                if (party.PartyType == "I" && string.IsNullOrEmpty(party.PartyIdType))
+                {
+                    return BadRequest("Invalid request object. ID Number Type is missing for Intermediate Consignee");
+                }                
+            }
+            //check for status
+            if (aes.Aes.SubmissionStatus == AesStatus.SUBMITTED)
+            {
+                return BadRequest("Unable to complete the Submission,Waiting for GETS Response for previous Submission");
+            }
             var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
@@ -90,6 +108,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             else
             {
                 aes.Aes.SubmissionStatus = AesStatus.PENDING;
+                aes.Aes.SubmissionStatusDescription = string.Empty;
                 var response = await aesDbRepository.CreateItemAsync(aes.Aes);
                 return Ok(new
                 {
@@ -121,6 +140,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             this.mapper.Map(aesObject, item);
             item.SubmissionStatus = AesStatus.DRAFT;
+            item.SubmissionStatusDescription = string.Empty;
             item.DraftDate = DateTime.UtcNow.ToString();
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 

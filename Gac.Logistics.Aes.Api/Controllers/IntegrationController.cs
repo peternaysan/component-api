@@ -88,34 +88,46 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid gets response object");
             }
+            if (customsReponse.ftpaesResponse == null)
+            {
+                return BadRequest("Invalid gets response object,ftpaesResponse node is missing");
+            }
 
-            if (customsReponse.ftpcommodityShipment == null)
+            if (customsReponse.ftpaesResponse.ftpcommodityShipment == null)
             {
                 return BadRequest("Invalid gets response object, ftpcommodityShipment node is missing");
             }
+            if (customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader == null)
+            {
+                return BadRequest("Invalid gets response object, ftpshipmentHeader node is missing");
+            }
 
-            if (string.IsNullOrEmpty(customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber))
+            if (string.IsNullOrEmpty(customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber))
             {
                 return BadRequest("Invalid gets response object, ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber is missing");
             }
 
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == 
-                                 customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
+                                 customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
                                 .Result
                                 .FirstOrDefault();
            
             if (item == null)
             {
-                return BadRequest($"Invalid shipment reference no ${customsReponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
+                return BadRequest($"Invalid shipment reference no ${customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
             }
             item.SubmissionResponse = new SubmissionStatus();
 
-            if (customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse != null)
+            if (!string.IsNullOrEmpty(customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeaderResponse?.internalTransactionNumber))
             {
                 item.SubmissionResponse.Status = "SUCCESS";
                 item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                item.SubmissionStatusDescription = customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse.narrativeText;
-                item.ShipmentHeader.OriginalItn = customsReponse.ftpcommodityShipment.ftpshipmentHeaderResponse.internalTransactionNumber;
+                item.SubmissionStatusDescription = customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeaderResponse.narrativeText;
+                item.ShipmentHeader.OriginalItn = customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeaderResponse.internalTransactionNumber;
+                //further available values
+                //customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeaderResponse.responseCode;
+                //customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeaderResponse.severityIndicator;                
+
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
 

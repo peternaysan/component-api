@@ -7,7 +7,13 @@ namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
 {
     public class AesCustomsResponse
     {
+        public FtpaesResponse ftpaesResponse { get; set; }
+    }
+
+    public class FtpaesResponse
+    {
         public Ftpcommodityshipment ftpcommodityShipment { get; set; }
+
     }
 
     public class Ftpcommodityshipment
@@ -26,6 +32,7 @@ namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
     {
         public string responseCode { get; set; }
         public string finalDispositionIndicator { get; set; }
+        public string severityIndicator { get; set; }
         public string narrativeText { get; set; }
         public string internalTransactionNumber { get; set; }
     }
