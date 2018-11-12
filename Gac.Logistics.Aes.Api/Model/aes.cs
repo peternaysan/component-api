@@ -14,10 +14,7 @@ namespace Gac.Logistics.Aes.Api.Model
         public string Id { get; set; }
 
         [JsonProperty("bookingId")]
-        public string BookingId { get; set; }
-
-        [JsonProperty("instanceCode")]
-        public string InstanceCode { get; set; }        
+        public string BookingId { get; set; }            
 
         [JsonProperty("createdBy")]
         public string CreatedBy { get; set; }

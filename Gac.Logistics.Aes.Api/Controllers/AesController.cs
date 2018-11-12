@@ -68,12 +68,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid request object. BookingID is missing or having invalid value");
             }
-            if (string.IsNullOrEmpty(aes.Aes.InstanceCode))
+            if (aes.Aes.Header!=null && string.IsNullOrEmpty(aes.Aes.Header.Senderappcode))
             {
                 return BadRequest("Invalid request object.Instance Code is missing or having invalid value");
             }
 
-            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.InstanceCode == aes.Aes.InstanceCode);
+            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode);
             var enumerable = item as Model.Aes[] ?? item.ToArray();
             if (enumerable.Any())
             {
@@ -84,7 +84,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     id = response.Id,
                     bookingId = aes.Aes.BookingId,
-                    instanceCode = aes.Aes.InstanceCode
+                    senderappcode = aes.Aes.Header.Senderappcode
                 });
             }
             else
@@ -95,7 +95,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     id = response.Id,
                     bookingId = aes.Aes.BookingId,
-                    instanceCode = aes.Aes.InstanceCode
+                    senderappcode = aes.Aes.Header.Senderappcode
                 });
             }
         }
@@ -164,6 +164,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     Name = aesObject.PicUser.FirstName,
                     NotificationType = "ALL",
                     Email = aesObject.PicUser.Email
+                   
                 });
             }
              // submitted user
@@ -172,7 +173,9 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
                 {
                     Name = aesObject.SubmittedUser.FirstName,
+                    NotificationType = "ALL",
                     Email = aesObject.SubmittedUser.Email
+                   
                 });
 
             }
@@ -182,21 +185,18 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             // submit to IX
             var getsAes = (GetsAes) item;            
-            getsAes.Header.Signature = this.Configuration["AppSettings:Signature"]; ;
             getsAes.Header.Sentat = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
-            getsAes.Header.Senderappcode = this.Configuration["AppSettings:SenderAppCode"]; 
             var success = await this.ixService.SubmitAes(getsAes);
             if (success)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
+                item.SubmittedOn=DateTime.UtcNow;
                 item.SubmissionStatusDescription = "Waiting for confirmation from GETS";
                 response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
                 return Ok(response);
             }
-            else
-            {
-                return StatusCode(500, "An error occured while communicating with IX server");
-            }
+
+            return StatusCode(500, "An error occured while communicating with IX server");
 
         }
     }
