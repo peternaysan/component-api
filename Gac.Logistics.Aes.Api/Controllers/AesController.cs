@@ -199,13 +199,21 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 });
 
             }
+           
+            
 
             this.mapper.Map(aesObject, item);
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
             // submit to IX
-            var getsAes = (GetsAes) item;            
-            getsAes.Header.Sentat = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
+            var getsAes = (GetsAes) item;
+            /*only for tesring as instructed by IX team; To be removed before going to production*/
+            //start           
+            getsAes.Header.Signature = "OGbV2RJkqdhQgDNXH1OXmQ==";
+            getsAes.Header.Senderappcode = "GNSG02";
+            getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
+            //end
+
             var success = await this.ixService.SubmitAes(getsAes);
             if (success)
             {
