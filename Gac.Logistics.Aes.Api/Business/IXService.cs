@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace Gac.Logistics.Aes.Api.Business
             this.Configuration = configuration;
         }
 
-        public async Task<bool> SubmitAes(Model.GetsAes aes)
+        public async Task<HttpStatusCode> SubmitAes(Model.GetsAes aes)
         {
             try
             {
@@ -34,7 +35,15 @@ namespace Gac.Logistics.Aes.Api.Business
                         var response = await client.PostAsJsonAsync(ss, aes); // post to base address
                         if (response.IsSuccessStatusCode)
                         {
-                            return true;
+                            return HttpStatusCode.OK;
+                        }
+                        if (response.StatusCode == HttpStatusCode.BadRequest)
+                        {
+                            return HttpStatusCode.BadRequest;
+                        }
+                        if (response.StatusCode == HttpStatusCode.InternalServerError)
+                        {
+                            return HttpStatusCode.InternalServerError;
                         }
                     }
                 }
@@ -51,7 +60,7 @@ namespace Gac.Logistics.Aes.Api.Business
                 var err = ex.ToString();
             }
             // to do log error
-            return false;
+            return HttpStatusCode.InternalServerError;
         }
     }
 }

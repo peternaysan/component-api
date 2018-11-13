@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -168,7 +169,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid ShipmentReference Number");
             }
 
-            if (aesObject.SubmissionStatus == "SUBMITTED")
+            if (aesObject.SubmissionStatus == AesStatus.SUBMITTED)
             {
                 return BadRequest("Already submited, waiting for acknowledgement !!");
             }
@@ -213,9 +214,16 @@ namespace Gac.Logistics.Aes.Api.Controllers
             getsAes.Header.Senderappcode = "GNSG02";
             getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
             //end
-
-            var success = await this.ixService.SubmitAes(getsAes);
-            if (success)
+            if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED|| aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
+            {
+                getsAes.ShipmentHeader.ShipmentAction = "R";
+            }
+            else if ((aesObject.SubmissionStatus == AesStatus.PENDING || aesObject.SubmissionStatus == AesStatus.DRAFT) && !aesObject.SubmittedOn.HasValue)
+            {
+                getsAes.ShipmentHeader.ShipmentAction = "A";
+            }
+            var stausCode = await this.ixService.SubmitAes(getsAes);
+            if (stausCode== HttpStatusCode.OK)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
                 item.SubmittedOn=DateTime.UtcNow;
@@ -223,6 +231,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
                 return Ok(response);
             }
+            if (stausCode == HttpStatusCode.BadRequest)
+            {
+                return BadRequest("IX returned a data validation erorr");
+            }            
 
             return StatusCode(500, "An error occured while communicating with IX server");
 
