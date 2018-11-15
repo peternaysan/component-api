@@ -4,6 +4,10 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 {
     public class SubmissionStatus
     {
+        public SubmissionStatus()
+        {
+            this.CustomsResponseList = new List<CustomsResponse>();
+        }
         public string Status { get; set; }
         public string Description { get; set; }
         public string ItnNumber { get; set; }

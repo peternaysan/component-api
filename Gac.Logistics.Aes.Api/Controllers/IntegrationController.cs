@@ -66,7 +66,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
             {
                 item.SubmissionStatus = AesStatus.GETSREJECTED;
-                if (getsResponse.Ack.Aes.Error != null && getsResponse.Ack.Aes.Error.Count>0)
+                if (getsResponse.Ack.Aes.Error != null && getsResponse.Ack.Aes.Error.Count > 0)
                 {
                     item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.First().ErrorDescription;
                 }
@@ -107,17 +107,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid gets response object, ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber is missing");
             }
 
-            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == 
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber ==
                                  customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
                                 .Result
                                 .FirstOrDefault();
-           
+
             if (item == null)
             {
                 return BadRequest($"Invalid shipment reference no ${customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
             }
-            item.SubmissionResponse = new SubmissionStatus();
 
+            item.SubmissionResponse = new SubmissionStatus();
             if (!string.IsNullOrEmpty(customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeaderResponse?.internalTransactionNumber))
             {
                 item.SubmissionResponse.Status = "SUCCESS";
@@ -130,8 +130,43 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
+            else if (customsReponse.ftpaesResponse.ftpcommodityShipment.ftpcommodityLineItemGroup?.ftplineItemHeaderContinuationResponse != null)
+            {
+                foreach (var line in customsReponse.ftpaesResponse.ftpcommodityShipment.ftpcommodityLineItemGroup.ftplineItemHeaderContinuationResponse)
+                {
+                    var responseItem = new CustomsResponse()
+                    {
+                        NarrativeText = line.narrativeText,
+                        ResponseCode = line.responseCode,
+                        SeverityIndicator = line.severityIndicator
+                    };
 
-            await hubContext.Clients.All.SendAsync("customscallback", customsReponse);
+                    item.SubmissionResponse.CustomsResponseList.Add(responseItem);
+
+                    if (responseItem.NarrativeText.ToUpper().Contains("REJECTED"))
+                    {
+                        item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                        item.SubmissionStatusDescription = line.narrativeText;
+                    }
+
+                    if (!string.IsNullOrEmpty(line.internalTransactionNumber))
+                    {
+                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
+                        item.ShipmentHeader.OriginalItn = line.internalTransactionNumber;
+                        item.SubmissionStatusDescription = line.narrativeText;
+                    }
+                    await aesDbRepository.UpdateItemAsync(item.Id, item);
+                }
+            }
+
+            // signalr notoificatio
+            await hubContext.Clients.All.SendAsync("customscallback", new
+            {
+                itn = item.ShipmentHeader.OriginalItn,
+                status = item.SubmissionResponse.Status,
+                description = item.SubmissionStatus,
+                errorList = item.SubmissionResponse.CustomsResponseList
+            });
             return Ok(true);
         }
     }

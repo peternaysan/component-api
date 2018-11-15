@@ -62,7 +62,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 BadRequest("Invalid aes object");
             }
-            if (aes.Aes.ShipmentHeader !=null && string.IsNullOrEmpty(aes.Aes.ShipmentHeader.ShipmentReferenceNumber))
+            if (aes.Aes.ShipmentHeader != null && string.IsNullOrEmpty(aes.Aes.ShipmentHeader.ShipmentReferenceNumber))
             {
                 return BadRequest("Invalid request object. ShipmentReferenceNumber is missing or having invalid value");
             }
@@ -71,12 +71,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid request object. BookingID is missing or having invalid value");
             }
-            if (aes.Aes.Header!=null && string.IsNullOrEmpty(aes.Aes.Header.Senderappcode))
+            if (aes.Aes.Header != null && string.IsNullOrEmpty(aes.Aes.Header.Senderappcode))
             {
                 return BadRequest("Invalid request object.Instance Code is missing or having invalid value");
             }
 
-            foreach (var party in aes.Aes.ShipmentParty) 
+            foreach (var party in aes.Aes.ShipmentParty)
             {
                 if (party.PartyType == "C" && string.IsNullOrEmpty(party.PartyIdType))
                 {
@@ -85,7 +85,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 if (party.PartyType == "I" && string.IsNullOrEmpty(party.PartyIdType))
                 {
                     return BadRequest("Invalid request object. ID Number Type is missing for Intermediate Consignee");
-                }                
+                }
             }
             //check for status
             if (aes.Aes.SubmissionStatus == AesStatus.SUBMITTED)
@@ -97,6 +97,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             if (enumerable.Any())
             {
                 var aesObj = enumerable.FirstOrDefault();
+                
                 this.mapper.Map(aes.Aes, aesObj);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
                 return Ok(new
@@ -175,46 +176,44 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
             // message id
-            aesObject.Header.MessageId = aesObject.Id;
+            aesObject.Header.MessageId = "1275";
             // status notification email // pic
             aesObject.StatusNotification = new List<Model.SubClasses.StatusNotification>();
-            if (aesObject.PicUser != null && !string.IsNullOrEmpty(aesObject.PicUser.Email))
+            if (!string.IsNullOrEmpty(aesObject.PicUser?.Email))
             {
                 aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
                 {
                     Name = aesObject.PicUser.FirstName,
                     NotificationType = "ALL",
                     Email = aesObject.PicUser.Email
-                   
+
                 });
             }
-             // submitted user
-            if (aesObject.SubmittedUser != null && !string.IsNullOrEmpty(aesObject.SubmittedUser.Email))
+            // submitted user
+            if (!string.IsNullOrEmpty(aesObject.SubmittedUser?.Email))
             {
                 aesObject.StatusNotification.Add(new Model.SubClasses.StatusNotification()
                 {
                     Name = aesObject.SubmittedUser.FirstName,
                     NotificationType = "ALL",
                     Email = aesObject.SubmittedUser.Email
-                   
+
                 });
 
             }
-           
-            
 
             this.mapper.Map(aesObject, item);
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
             // submit to IX
-            var getsAes = (GetsAes) item;
+            var getsAes = (GetsAes)item;
             /*only for tesring as instructed by IX team; To be removed before going to production*/
             //start           
             getsAes.Header.Signature = "OGbV2RJkqdhQgDNXH1OXmQ==";
             getsAes.Header.Senderappcode = "GNSG02";
             getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
             //end
-            if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED|| aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
+            if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED || aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
             {
                 getsAes.ShipmentHeader.ShipmentAction = "R";
             }
@@ -223,10 +222,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 getsAes.ShipmentHeader.ShipmentAction = "A";
             }
             var stausCode = await this.ixService.SubmitAes(getsAes);
-            if (stausCode== HttpStatusCode.OK)
+            if (stausCode == HttpStatusCode.OK)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
-                item.SubmittedOn=DateTime.UtcNow;
+                item.SubmittedOn = DateTime.UtcNow;
                 item.SubmissionStatusDescription = "Waiting for confirmation from GETS";
                 response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
                 return Ok(response);
@@ -234,7 +233,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             if (stausCode == HttpStatusCode.BadRequest)
             {
                 return BadRequest("IX returned a data validation erorr");
-            }            
+            }
 
             return StatusCode(500, "An error occured while communicating with IX server");
 
@@ -242,5 +241,5 @@ namespace Gac.Logistics.Aes.Api.Controllers
     }
 }
 
-    
+
 
