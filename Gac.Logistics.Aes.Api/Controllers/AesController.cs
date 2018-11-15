@@ -213,7 +213,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             getsAes.Header.Senderappcode = "GNSG02";
             getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
             //end
-            if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED || aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
+            if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED)
             {
                 getsAes.ShipmentHeader.ShipmentAction = "R";
             }
