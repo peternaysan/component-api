@@ -98,7 +98,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             if (enumerable.Any())
             {
                 var aesObj = enumerable.FirstOrDefault();
-                
+
                 var gfSubDto = new GfSubmissionDto();
                 //this.mapper.Map(aes.Aes, gfSubDto);               
                 //this.mapper.Map(gfSubDto, aesObj);
@@ -217,14 +217,18 @@ namespace Gac.Logistics.Aes.Api.Controllers
             getsAes.Header.Senderappcode = "GNSG02";
             getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
             //end
-            if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED)
+            if (aesObject.ShipmentHeader.ShipmentAction != "X")
             {
-                getsAes.ShipmentHeader.ShipmentAction = "R";
+                if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED)
+                {
+                    getsAes.ShipmentHeader.ShipmentAction = "R";
+                }
+                else if ((aesObject.SubmissionStatus == AesStatus.PENDING || aesObject.SubmissionStatus == AesStatus.DRAFT) && !aesObject.SubmittedOn.HasValue)
+                {
+                    getsAes.ShipmentHeader.ShipmentAction = "A";
+                }
             }
-            else if ((aesObject.SubmissionStatus == AesStatus.PENDING || aesObject.SubmissionStatus == AesStatus.DRAFT) && !aesObject.SubmittedOn.HasValue)
-            {
-                getsAes.ShipmentHeader.ShipmentAction = "A";
-            }
+
             var stausCode = await this.ixService.SubmitAes(getsAes);
             if (stausCode == HttpStatusCode.OK)
             {
