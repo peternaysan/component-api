@@ -94,7 +94,23 @@ namespace Gac.Logistics.Aes.Api.Data
                 results.AddRange(await query.ExecuteNextAsync<T>());
             }
 
+
+
             return results;
+        }
+        public int FindItemsCount<T>(Expression<Func<T, bool>> predicate) where T : class
+        {
+            var count = Client.CreateDocumentQuery<T>(
+                                                                    UriFactory.CreateDocumentCollectionUri(DatabaseId,
+                                                                                                           CollectionId),
+                                                                    new FeedOptions
+                                                                    {
+                                                                        MaxItemCount = -1,
+                                                                        EnableCrossPartitionQuery = true
+                                                                    })
+                                            .Where(predicate)
+                                            .Count();
+            return count;
         }
 
         public IEnumerable<T> CreateDocumentQuery<T>(string query, FeedOptions options) where T : class
@@ -227,7 +243,7 @@ namespace Gac.Logistics.Aes.Api.Data
             }
         }
 
-      
+
 
     }
 
