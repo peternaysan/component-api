@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using Gac.Logistics.Aes.Api.Business;
+using Gac.Logistics.Aes.Api.Business.Dto;
 using Gac.Logistics.Aes.Api.Data;
 using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Model;
@@ -98,7 +99,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 var aesObj = enumerable.FirstOrDefault();
                 
-                this.mapper.Map(aes.Aes, aesObj);
+                var gfSubDto = new GfSubmissionDto();
+                //this.mapper.Map(aes.Aes, gfSubDto);               
+                //this.mapper.Map(gfSubDto, aesObj);
+                this.mapper.Map(aes.Aes, item);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
                 return Ok(new
                 {
