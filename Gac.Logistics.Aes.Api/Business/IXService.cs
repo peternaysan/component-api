@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Gac.Logistics.Aes.Api.Business.Dto;
 
 namespace Gac.Logistics.Aes.Api.Business
 {
@@ -19,7 +20,7 @@ namespace Gac.Logistics.Aes.Api.Business
             this.Configuration = configuration;
         }
 
-        public async Task<HttpStatusCode> SubmitAes(Model.GetsAes aes)
+        public async Task<IxErrorDto> SubmitAes(Model.GetsAes aes)
         {
             try
             {
@@ -33,34 +34,39 @@ namespace Gac.Logistics.Aes.Api.Business
                         // Make your request...
                         var ss = this.Configuration["AppSettings:IxEndpoint"];
                         var response = await client.PostAsJsonAsync(ss, aes); // post to base address
+                        var ixErrorDto = new IxErrorDto();
                         if (response.IsSuccessStatusCode)
                         {
-                            return HttpStatusCode.OK;
+                            ixErrorDto.HttpStatusCode = HttpStatusCode.OK;
+                            ixErrorDto.ErrorMessage = string.Empty;
+                            return ixErrorDto;
                         }
                         if (response.StatusCode == HttpStatusCode.BadRequest)
                         {
-                            return HttpStatusCode.BadRequest;
+                            ixErrorDto.HttpStatusCode = HttpStatusCode.BadRequest;
+                            ixErrorDto.ErrorMessage = response.Content.ToString();
+                            return ixErrorDto;
                         }
                         if (response.StatusCode == HttpStatusCode.InternalServerError)
                         {
-                            return HttpStatusCode.InternalServerError;
+                            ixErrorDto.HttpStatusCode = HttpStatusCode.InternalServerError;
+                            ixErrorDto.ErrorMessage = response.Content.ToString();
+                            return ixErrorDto;
                         }
                     }
                 }
-
-                //var client = this.clientFactory.CreateClient("ix");
-                //var response = await client.PostAsJsonAsync(string.Empty, aes); // post to base address
-                //if (response.IsSuccessStatusCode)
-                //{
-                //    return true;
-                //}
             }
             catch (Exception ex)
             {
                 var err = ex.ToString();
             }
             // to do log error
-            return HttpStatusCode.InternalServerError;
+            var errorDto = new IxErrorDto
+                           {
+                               HttpStatusCode = HttpStatusCode.InternalServerError,
+                               ErrorMessage = "Ix server returned an error"
+                           };
+            return errorDto;
         }
     }
 }

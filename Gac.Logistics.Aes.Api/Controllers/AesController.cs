@@ -227,10 +227,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     getsAes.ShipmentHeader.ShipmentAction = "A";
                 }
+                else if (aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
+                {
+                    getsAes.ShipmentHeader.ShipmentAction = "R";
+                }
             }
 
-            var stausCode = await this.ixService.SubmitAes(getsAes);
-            if (stausCode == HttpStatusCode.OK)
+            var ixResponse = await this.ixService.SubmitAes(getsAes);
+            if (ixResponse.HttpStatusCode == HttpStatusCode.OK)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
                 item.SubmittedOn = DateTime.UtcNow;
@@ -238,9 +242,9 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
                 return Ok(response);
             }
-            if (stausCode == HttpStatusCode.BadRequest)
+            if (ixResponse.HttpStatusCode == HttpStatusCode.BadRequest)
             {
-                return BadRequest("IX returned a data validation erorr");
+                return BadRequest(ixResponse.ErrorMessage);
             }
 
             return StatusCode(500, "An error occured while communicating with IX server");
