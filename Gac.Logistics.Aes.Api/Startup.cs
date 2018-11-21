@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Rewrite;
 using Gac.Logistics.Aes.Api.Business;
 using System;
 using Gac.Logistics.Aes.Api.Hubs;
+using Gac.Logistics.Aes.Api.Profile;
 
 namespace AesComponentApi
 {
@@ -38,6 +39,7 @@ namespace AesComponentApi
             services.AddTransient<CountryDbRepository, CountryDbRepository>();
             services.AddTransient<HtsDbRepository, HtsDbRepository>();
             services.AddTransient<LicenseExemptionCodeDbRepository, LicenseExemptionCodeDbRepository>();
+            services.AddTransient<AesGetsResponseRepository, AesGetsResponseRepository>();
 
             services.AddTransient<IxService, IxService>();
 
@@ -58,6 +60,7 @@ namespace AesComponentApi
             });
 
             services.AddAutoMapper();
+
             services.AddSwaggerGen(c =>
                                    {
                                        c.SwaggerDoc("v1", new Info

@@ -16,13 +16,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
     public class IntegrationController : ControllerBase
     {
         private readonly AesDbRepository aesDbRepository;
+        private readonly AesGetsResponseRepository aesGetsResponseRepository;
         private readonly IMapper mapper;
         private readonly IHubContext<AesHub> hubContext;
 
         public IntegrationController(AesDbRepository aesDbRepository, IMapper mapper,
-                                     IHubContext<AesHub> hubContext)
+                                     IHubContext<AesHub> hubContext, AesGetsResponseRepository aesGetsResponseRepository)
         {
             this.aesDbRepository = aesDbRepository;
+            this.aesGetsResponseRepository = aesGetsResponseRepository;
             this.mapper = mapper;
             this.hubContext = hubContext;
         }
@@ -61,6 +63,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
                 item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
+                
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
@@ -70,6 +73,9 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.First().ErrorDescription;
                 }
+
+                var aesGetsResponse = new AesGetsResponse {ackGetsReponse = getsResponse};
+                await aesGetsResponseRepository.CreateItemAsync(aesGetsResponse);
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else

@@ -93,16 +93,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Unable to complete the Submission,Waiting for GETS Response for previous Submission");
             }
-            var item = await aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode);
-            var enumerable = item as Model.Aes[] ?? item.ToArray();
-            if (enumerable.Any())
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
+                                            .FirstOrDefault();
+            
+            if (item!=null)
             {
-                var aesObj = enumerable.FirstOrDefault();
-
-                var gfSubDto = new GfSubmissionDto();
-                //this.mapper.Map(aes.Aes, gfSubDto);               
-                //this.mapper.Map(gfSubDto, aesObj);
-                this.mapper.Map(aes.Aes, item);
+                var aesObj = item;                
+                this.mapper.Map(aes.Aes, aesObj);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
                 return Ok(new
                 {
@@ -207,6 +204,21 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
             this.mapper.Map(aesObject, item);
+            if (aesObject.ShipmentHeader.ShipmentAction != "X")
+            {
+                if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED)
+                {
+                    aesObject.ShipmentHeader.ShipmentAction = "R";
+                }
+                else if ((aesObject.SubmissionStatus == AesStatus.PENDING || aesObject.SubmissionStatus == AesStatus.DRAFT) && !aesObject.SubmittedOn.HasValue)
+                {
+                    aesObject.ShipmentHeader.ShipmentAction = "A";
+                }
+                else if (aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
+                {
+                    aesObject.ShipmentHeader.ShipmentAction = "A";
+                }
+            }
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
             // submit to IX
@@ -216,22 +228,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             getsAes.Header.Signature = "OGbV2RJkqdhQgDNXH1OXmQ==";
             getsAes.Header.Senderappcode = "GNSG02";
             getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
-            //end
-            if (aesObject.ShipmentHeader.ShipmentAction != "X")
-            {
-                if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED)
-                {
-                    getsAes.ShipmentHeader.ShipmentAction = "R";
-                }
-                else if ((aesObject.SubmissionStatus == AesStatus.PENDING || aesObject.SubmissionStatus == AesStatus.DRAFT) && !aesObject.SubmittedOn.HasValue)
-                {
-                    getsAes.ShipmentHeader.ShipmentAction = "A";
-                }
-                else if (aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
-                {
-                    getsAes.ShipmentHeader.ShipmentAction = "R";
-                }
-            }
+            //end          
 
             var ixResponse = await this.ixService.SubmitAes(getsAes);
             if (ixResponse.HttpStatusCode == HttpStatusCode.OK)
@@ -248,8 +245,22 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
             return StatusCode(500, "An error occured while communicating with IX server");
-
         }
+
+
+        //private void MapGfFieldsOnly(Model.Aes sourceAesObj, Model.Aes destnAesObj)
+        //{
+        //    destnAesObj.PicUser = sourceAesObj.PicUser;
+        //    destnAesObj.SubmittedUser = sourceAesObj.SubmittedUser;
+        //    if (sourceAesObj.ShipmentHeader != null)
+        //    {
+        //        destnAesObj.ShipmentHeader.EstimatedExportDate = sourceAesObj.ShipmentHeader.EstimatedExportDate;
+        //        destnAesObj.ShipmentHeader.PortofExportation = sourceAesObj.ShipmentHeader.PortofExportation;
+        //        destnAesObj.ShipmentHeader.PortofExportation = sourceAesObj.ShipmentHeader.PortofUnlading;
+
+        //    }
+           
+        //}        
     }
 }
 
