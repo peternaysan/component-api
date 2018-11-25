@@ -57,12 +57,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo}");
             }
+           
 
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
                 item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
-
+                item.GetsResponse = getsResponse;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
@@ -72,8 +73,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.First().ErrorDescription;
                 }
-
-                item.GetsReponse = getsResponse;
+                item.GetsResponse = getsResponse;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else

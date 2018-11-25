@@ -36,7 +36,7 @@ namespace Gac.Logistics.Aes.Api.Model
         [JsonProperty("statusNotification")]
         public List<StatusNotification> StatusNotification { get; set; }
 
-        public AckGetsReponse GetsReponse { get; set; }
+        public AckGetsReponse GetsResponse { get; set; }
 
     }
 }
