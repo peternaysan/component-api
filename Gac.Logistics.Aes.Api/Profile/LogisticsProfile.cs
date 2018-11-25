@@ -17,6 +17,9 @@ namespace Gac.Logistics.Aes.Api.Profile
             CreateMap<Model.Aes, GfSubmissionDto>();
 
             CreateMap<GfSubmissionDto, Model.Aes>();
+            CreateMap<GfShipmentHeader, ShipmentHeader>();
+            CreateMap<GfShipmentParty, ShipmentParty>();
+            CreateMap<GfTransportation, Transportation>();
         }
     } 
 }

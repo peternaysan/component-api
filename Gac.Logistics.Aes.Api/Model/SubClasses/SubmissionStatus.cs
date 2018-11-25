@@ -2,9 +2,9 @@
 
 namespace Gac.Logistics.Aes.Api.Model.SubClasses
 {
-    public class SubmissionStatus
+    public class SubmissionResponse
     {
-        public SubmissionStatus()
+        public SubmissionResponse()
         {
             this.CustomsResponseList = new List<CustomsResponse>();
         }
@@ -19,5 +19,7 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
         public string ResponseCode { get; set; }
         public string SeverityIndicator { get; set; }
         public string NarrativeText { get; set; }
+        public string ReasonCode { get; set; }
+        public string FinalDestinationIndicator { get; set; }
     }
 }

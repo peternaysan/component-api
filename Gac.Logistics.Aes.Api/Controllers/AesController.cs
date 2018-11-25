@@ -88,18 +88,23 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     return BadRequest("Invalid request object. ID Number Type is missing for Intermediate Consignee");
                 }
             }
-            //check for status
-            if (aes.Aes.SubmissionStatus == AesStatus.SUBMITTED)
-            {
-                return BadRequest("Unable to complete the Submission,Waiting for GETS Response for previous Submission");
-            }
+           
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
                                             .FirstOrDefault();
-            
+           
+
             if (item!=null)
             {
-                var aesObj = item;                
-                this.mapper.Map(aes.Aes, aesObj);
+                var aesObj = item;
+                //check for status
+                if (item.SubmissionStatus == AesStatus.SUBMITTED)
+                {
+                    return BadRequest("Unable to complete the Submission,Waiting for GETS Response for previous Submission");
+                }
+                var gfSubmissionDto = new GfSubmissionDto();
+                this.mapper.Map(aes.Aes, gfSubmissionDto);
+                this.mapper.Map(gfSubmissionDto, aesObj);
+                //this.mapper.Map(aes.Aes, aesObj);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
                 return Ok(new
                 {
@@ -141,7 +146,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return NotFound("Invalid aes id");
             }
 
-            this.mapper.Map(aesObject, item);
+            this.mapper.Map(aesObject, item);            
             item.SubmissionStatus = AesStatus.DRAFT;
             item.SubmissionStatusDescription = string.Empty;
             item.DraftDate = DateTime.UtcNow.ToString();
@@ -178,7 +183,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             // message id
             aesObject.Header.MessageId = "1275";
-            // status notification email // pic
+            
             aesObject.StatusNotification = new List<Model.SubClasses.StatusNotification>();
             if (!string.IsNullOrEmpty(aesObject.PicUser?.Email))
             {
@@ -206,30 +211,27 @@ namespace Gac.Logistics.Aes.Api.Controllers
             this.mapper.Map(aesObject, item);
             if (aesObject.ShipmentHeader.ShipmentAction != "X")
             {
-                if (aesObject.SubmissionStatus == AesStatus.GETSAPPROVED)
+                if (aesObject.SubmissionStatus == AesStatus.CUSTOMSREJECTED || aesObject.SubmissionStatus == AesStatus.CUSTOMSAPPROVED)
                 {
                     aesObject.ShipmentHeader.ShipmentAction = "R";
                 }
-                else if ((aesObject.SubmissionStatus == AesStatus.PENDING || aesObject.SubmissionStatus == AesStatus.DRAFT) && !aesObject.SubmittedOn.HasValue)
+                else 
                 {
                     aesObject.ShipmentHeader.ShipmentAction = "A";
-                }
-                else if (aesObject.SubmissionStatus == AesStatus.GETSREJECTED)
-                {
-                    aesObject.ShipmentHeader.ShipmentAction = "A";
-                }
+                }               
             }
+            aesObject.Header.ActionType = "ST";
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
             // submit to IX
             var getsAes = (GetsAes)item;
-            /*only for tesring as instructed by IX team; To be removed before going to production*/
+            /*only for testing as instructed by IX team; To be removed before going to production*/
             //start           
             getsAes.Header.Signature = "OGbV2RJkqdhQgDNXH1OXmQ==";
             getsAes.Header.Senderappcode = "GNSG02";
             getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
             //end          
-
+            
             var ixResponse = await this.ixService.SubmitAes(getsAes);
             if (ixResponse.HttpStatusCode == HttpStatusCode.OK)
             {
