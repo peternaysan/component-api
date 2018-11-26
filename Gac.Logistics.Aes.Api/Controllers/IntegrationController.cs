@@ -17,13 +17,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
     public class IntegrationController : ControllerBase
     {
         private readonly AesDbRepository aesDbRepository;
+        private readonly AesTransactionDbRepository aesTransactionDbRepository;
         private readonly IMapper mapper;
         private readonly IHubContext<AesHub> hubContext;
 
         public IntegrationController(AesDbRepository aesDbRepository, IMapper mapper,
-                                     IHubContext<AesHub> hubContext)
+                                     IHubContext<AesHub> hubContext, AesTransactionDbRepository aesTransactionDbRepository)
         {
             this.aesDbRepository = aesDbRepository;
+            this.aesTransactionDbRepository = aesTransactionDbRepository;
             this.mapper = mapper;
             this.hubContext = hubContext;
         }
@@ -129,6 +131,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 ProcessCustomsStructure(ftpcommodityShipment, item);
 
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
+
+                //add it to transaction history
+                var aesTransaction = new AesTransaction
+                                     {
+                                         AesDetailEntity = item,
+                                         CreatedOn = DateTime.UtcNow,
+                                         Message = item.SubmissionStatusDescription,
+                                         Status = item.SubmissionStatus
+                                     };
+                await aesTransactionDbRepository.CreateItemAsync(aesTransaction);
+                
 
                 // signalr notoificatio
                 await hubContext.Clients.All.SendAsync("customscallback", new
@@ -322,7 +335,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
                 item.SubmissionResponse.Status = "FAIL";
                 item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                item.SubmissionStatusDescription = "Automatically set by AES , found no relvant information to process in customs response";
+                item.SubmissionStatusDescription = "Automatically set by AES, found no relevant information to process. Please see response details.";
                 item.ShipmentHeader.OriginalItn = string.Empty;
             }
         }

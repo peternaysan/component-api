@@ -150,9 +150,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return NotFound("Invalid aes id");
             }
 
-            this.mapper.Map(aesObject, item);            
-            item.SubmissionStatus = AesStatus.DRAFT;
-            item.SubmissionStatusDescription = string.Empty;
+            this.mapper.Map(aesObject, item);
+            if (item.SubmissionStatus == AesStatus.PENDING || item.SubmissionStatus == AesStatus.DRAFT)
+            {
+                item.SubmissionStatus = AesStatus.DRAFT;
+                item.SubmissionStatusDescription = string.Empty;
+            }           
             item.DraftDate = DateTime.UtcNow.ToString();
             var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
