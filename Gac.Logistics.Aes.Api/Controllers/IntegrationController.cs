@@ -57,13 +57,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo}");
             }
-           
+
 
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
                 item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
-                item.GetsResponse = getsResponse;
+                AckGetsReponse getsRes;
+                getsRes = getsResponse;
+                item.GetsResponse = getsRes;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
@@ -101,40 +103,64 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid gets response object, ftpcommodityShipment node is missing");
             }
-            var ftpcommodityShipment = customsReponse.ftpaesResponse.ftpcommodityShipment;
-            if (ftpcommodityShipment.ftpshipmentHeader == null)
+
+            //var ftpcommodityShipment = customsReponse.ftpaesResponse.ftpcommodityShipment;
+
+            foreach (var ftpcommodityShipment in customsReponse.ftpaesResponse.ftpcommodityShipment)
             {
-                return BadRequest("Invalid gets response object, ftpshipmentHeader node is missing");
+                if (ftpcommodityShipment.ftpshipmentHeader == null)
+                {
+                    return BadRequest("Invalid gets response object, ftpshipmentHeader node is missing");
+                }
+
+                if (string.IsNullOrEmpty(ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber))
+                {
+                    return BadRequest("Invalid gets response object, ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber is missing");
+                }
+                var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
+                                          .Result
+                                          .FirstOrDefault();
+                if (item == null)
+                {
+                    return BadRequest($"Invalid shipment reference no ${ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
+                }
+
+                // important function go and see inside
+                ProcessCustomsStructure(ftpcommodityShipment, item);
+
+                await aesDbRepository.UpdateItemAsync(item.Id, item);
+
+                // signalr notoificatio
+                await hubContext.Clients.All.SendAsync("customscallback", new
+                {
+                    itn = item.ShipmentHeader.OriginalItn,
+                    status = item.SubmissionResponse.Status,
+                    description = item.SubmissionStatus,
+                    errorList = item.SubmissionResponse.CustomsResponseList
+                });
+
+
             }
 
-            if (string.IsNullOrEmpty(ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber))
-            {
-                return BadRequest("Invalid gets response object, ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber is missing");
-            }
+            return Ok(true);
+        }
 
-            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber ==
-                                 customsReponse.ftpaesResponse.ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
-                                .Result
-                                .FirstOrDefault();
-
-            if (item == null)
-            {
-                return BadRequest($"Invalid shipment reference no ${ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
-            }
-
+        private void ProcessCustomsStructure(Ftpcommodityshipment ftpcommodityShipment, Model.Aes item)
+        {
             item.SubmissionResponse = new SubmissionResponse();
-
             if (ftpcommodityShipment.ftpshipmentHeaderResponse?.Count > 0)
             {
                 foreach (var shipmentHeaderResponse in ftpcommodityShipment.ftpshipmentHeaderResponse)
                 {
-                    item = AddItemToCustomsResponse(shipmentHeaderResponse, item);
-                    if (!String.IsNullOrEmpty(shipmentHeaderResponse.internalTransactionNumber))
+                    AddItemToCustomsResponse(shipmentHeaderResponse, item);
+                    if (!string.IsNullOrEmpty(shipmentHeaderResponse.internalTransactionNumber))
                     {
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
+                        ApplyCustomsSuccessStatus(item, shipmentHeaderResponse);
+                    }
+                    else if (shipmentHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                    {
+                        item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
                         item.SubmissionStatusDescription = shipmentHeaderResponse.narrativeText;
-                        item.ShipmentHeader.OriginalItn = shipmentHeaderResponse.internalTransactionNumber;
                     }
                 }
             }
@@ -142,79 +168,101 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 foreach (var commodityLineItemGroup in ftpcommodityShipment.ftpcommodityLineItemGroup)
                 {
+
                     foreach (var lineItemHeaderResponse in commodityLineItemGroup.ftplineItemHeaderResponse)
                     {
-                        item = AddItemToCustomsResponse(lineItemHeaderResponse, item);
+                        AddItemToCustomsResponse(lineItemHeaderResponse, item);
 
-                        if (lineItemHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                        if (!string.IsNullOrEmpty(lineItemHeaderResponse.internalTransactionNumber))
+                        {
+                            ApplyCustomsSuccessStatus(item, lineItemHeaderResponse);
+                        }
+                        else if (lineItemHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
                         {
                             item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
                             item.SubmissionStatusDescription = lineItemHeaderResponse.narrativeText;
                         }
-
-                        if (string.IsNullOrEmpty(lineItemHeaderResponse.internalTransactionNumber))
-                            continue;
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.ShipmentHeader.OriginalItn = lineItemHeaderResponse.internalTransactionNumber;
-                        item.SubmissionStatusDescription = lineItemHeaderResponse.narrativeText;
                     }
 
                     foreach (var lineItemHeaderContinuationResponse in commodityLineItemGroup.ftplineItemHeaderContinuationResponse)
                     {
-                        item = AddItemToCustomsResponse(lineItemHeaderContinuationResponse, item);
-                        if (string.IsNullOrEmpty(lineItemHeaderContinuationResponse.internalTransactionNumber))
-                            continue;
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.SubmissionStatusDescription = lineItemHeaderContinuationResponse.narrativeText;
-                        item.ShipmentHeader.OriginalItn = lineItemHeaderContinuationResponse.internalTransactionNumber;
+                        AddItemToCustomsResponse(lineItemHeaderContinuationResponse, item);
+                        if (!string.IsNullOrEmpty(lineItemHeaderContinuationResponse.internalTransactionNumber))
+                        {
+                            ApplyCustomsSuccessStatus(item, lineItemHeaderContinuationResponse);
+
+                        }
+                        else if (lineItemHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                        {
+                            item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                            item.SubmissionStatusDescription = lineItemHeaderContinuationResponse.narrativeText;
+                        }
                     }
 
-                    foreach (var licenseDetailResponse in commodityLineItemGroup.ftpdDTCLicenseDetailResponse)
+                    if (commodityLineItemGroup.ftpdDTCLicenseDetailResponse != null)
                     {
-                        item = AddItemToCustomsResponse(licenseDetailResponse, item);
-                        if (string.IsNullOrEmpty(licenseDetailResponse.internalTransactionNumber))
-                            continue;
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.SubmissionStatusDescription = licenseDetailResponse.narrativeText;
-                        item.ShipmentHeader.OriginalItn = licenseDetailResponse.internalTransactionNumber;
+                        foreach (var licenseDetailResponse in commodityLineItemGroup.ftpdDTCLicenseDetailResponse)
+                        {
+                            AddItemToCustomsResponse(licenseDetailResponse, item);
+                            if (!string.IsNullOrEmpty(licenseDetailResponse.internalTransactionNumber))
+                            {
+                                ApplyCustomsSuccessStatus(item, licenseDetailResponse);
+
+                            }
+                            else if (licenseDetailResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                                item.SubmissionStatusDescription = licenseDetailResponse.narrativeText;
+                            }
+
+                        }
                     }
+
 
                 }
             }
 
             if (ftpcommodityShipment.ftpshipmentHeaderContinuationResponse != null)
             {
-
-
                 foreach (var shipmentHeaderContinuationResponse in ftpcommodityShipment
                     .ftpshipmentHeaderContinuationResponse)
                 {
-                    item = AddItemToCustomsResponse(shipmentHeaderContinuationResponse, item);
-                    if (String.IsNullOrEmpty(shipmentHeaderContinuationResponse.internalTransactionNumber))
-                        continue;
-                    item.SubmissionResponse.Status = "SUCCESS";
-                    item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                    item.SubmissionStatusDescription = shipmentHeaderContinuationResponse.narrativeText;
-                    item.ShipmentHeader.OriginalItn = shipmentHeaderContinuationResponse.internalTransactionNumber;
-                }
+                    AddItemToCustomsResponse(shipmentHeaderContinuationResponse, item);
+                    if (!string.IsNullOrEmpty(shipmentHeaderContinuationResponse.internalTransactionNumber))
+                    {
+                        ApplyCustomsSuccessStatus(item, shipmentHeaderContinuationResponse);
+                    }
+                    else if (shipmentHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                    {
+                        item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                        item.SubmissionStatusDescription = shipmentHeaderContinuationResponse.narrativeText;
+                    }
 
+
+                }
             }
             if (ftpcommodityShipment.ftptransportationGroup != null)
             {
                 foreach (var transportationGroup in ftpcommodityShipment.ftptransportationGroup)
                 {
-                    foreach (var line in transportationGroup.transportationDetailResponse)
+                    if (transportationGroup.transportationDetailResponse != null)
                     {
-                        item = AddItemToCustomsResponse(line, item);
-                        if (String.IsNullOrEmpty(line.internalTransactionNumber))
-                            continue;
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.SubmissionStatusDescription = line.narrativeText;
-                        item.ShipmentHeader.OriginalItn = line.internalTransactionNumber;
+                        foreach (var line in transportationGroup.transportationDetailResponse)
+                        {
+                            AddItemToCustomsResponse(line, item);
+                            if (string.IsNullOrEmpty(line.internalTransactionNumber))
+                            {
+
+                                ApplyCustomsSuccessStatus(item, line);
+                            }
+                            else if (line.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                ApplyCustomsFailureStatus(item, line);
+                            }
+
+                        }
                     }
+
                 }
             }
 
@@ -222,63 +270,89 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 foreach (var shipmentPartyGroup in ftpcommodityShipment.ftpshipmentPartyGroup)
                 {
-                    foreach (var partyHeaderResponse in shipmentPartyGroup.partyHeaderResponse)
+                    if (shipmentPartyGroup.partyHeaderResponse != null)
                     {
-                        item = AddItemToCustomsResponse(partyHeaderResponse, item);
-                        if (String.IsNullOrEmpty(partyHeaderResponse.internalTransactionNumber))
-                            continue;
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.SubmissionStatusDescription = partyHeaderResponse.narrativeText;
-                        item.ShipmentHeader.OriginalItn = partyHeaderResponse.internalTransactionNumber;
+
+                        foreach (var partyHeaderResponse in shipmentPartyGroup.partyHeaderResponse)
+                        {
+                            AddItemToCustomsResponse(partyHeaderResponse, item);
+                            if (!string.IsNullOrEmpty(partyHeaderResponse.internalTransactionNumber))
+                            {
+                                ApplyCustomsSuccessStatus(item, partyHeaderResponse);
+                            }
+                            else if (partyHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                ApplyCustomsFailureStatus(item, partyHeaderResponse);
+                            }
+                        }
                     }
-                    foreach (var partyAddressResponse in shipmentPartyGroup.partyAddressResponse)
+
+                    if (shipmentPartyGroup.partyAddressResponse != null)
                     {
-                        item = AddItemToCustomsResponse(partyAddressResponse, item);
-                        if (String.IsNullOrEmpty(partyAddressResponse.internalTransactionNumber))
-                            continue;
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.SubmissionStatusDescription = partyAddressResponse.narrativeText;
-                        item.ShipmentHeader.OriginalItn = partyAddressResponse.internalTransactionNumber;
+
+                        foreach (var partyAddressResponse in shipmentPartyGroup.partyAddressResponse)
+                        {
+                            AddItemToCustomsResponse(partyAddressResponse, item);
+                            if (!string.IsNullOrEmpty(partyAddressResponse.internalTransactionNumber))
+                                ApplyCustomsSuccessStatus(item, partyAddressResponse);
+                            else if (partyAddressResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                                ApplyCustomsFailureStatus(item, partyAddressResponse);
+                        }
                     }
-                    foreach (var partyAddressContinuationResponse in shipmentPartyGroup.partyAddressContinuationResponse)
+
+                    if (shipmentPartyGroup.partyAddressContinuationResponse != null)
                     {
-                        item = AddItemToCustomsResponse(partyAddressContinuationResponse, item);
-                        if (String.IsNullOrEmpty(partyAddressContinuationResponse.internalTransactionNumber))
-                            continue;
-                        item.SubmissionResponse.Status = "SUCCESS";
-                        item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
-                        item.SubmissionStatusDescription = partyAddressContinuationResponse.narrativeText;
-                        item.ShipmentHeader.OriginalItn = partyAddressContinuationResponse.internalTransactionNumber;
+                        foreach (var partyAddressContinuationResponse in shipmentPartyGroup
+                            .partyAddressContinuationResponse)
+                        {
+                            AddItemToCustomsResponse(partyAddressContinuationResponse, item);
+                            if (!string.IsNullOrEmpty(partyAddressContinuationResponse.internalTransactionNumber))
+                                ApplyCustomsSuccessStatus(item, partyAddressContinuationResponse);
+                            else if (partyAddressContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                                ApplyCustomsFailureStatus(item, partyAddressContinuationResponse);
+                        }
                     }
                 }
             }
 
-            // signalr notoificatio
-            await hubContext.Clients.All.SendAsync("customscallback", new
+            if (item.SubmissionStatus != AesStatus.CUSTOMSAPPROVED ||
+                item.SubmissionStatus != AesStatus.CUSTOMSREJECTED)
             {
-                itn = item.ShipmentHeader.OriginalItn,
-                status = item.SubmissionResponse.Status,
-                description = item.SubmissionStatus,
-                errorList = item.SubmissionResponse.CustomsResponseList
-            });
-            return Ok(true);
+                // nohting found on xml to decide success so failed
+
+                item.SubmissionResponse.Status = "FAIL";
+                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                item.SubmissionStatusDescription = "Automatically set by AES , found no relvant information to process in customs response";
+                item.ShipmentHeader.OriginalItn = string.Empty;
+            }
         }
 
-        private Model.Aes AddItemToCustomsResponse(FtpReponseStructure response,Model.Aes item)
+        private static void ApplyCustomsSuccessStatus(Model.Aes item, FtpReponseStructure response)
+        {
+            item.SubmissionResponse.Status = "SUCCESS";
+            item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
+            item.SubmissionStatusDescription = response.narrativeText;
+            item.ShipmentHeader.OriginalItn = response.internalTransactionNumber;
+        }
+
+        private static void ApplyCustomsFailureStatus(Model.Aes item, FtpReponseStructure response)
+        {
+            item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+            item.SubmissionStatusDescription = response.narrativeText;
+        }
+
+        private void AddItemToCustomsResponse(FtpReponseStructure response, Model.Aes item)
         {
             var responseItem = new CustomsResponse()
-                               {
-                                   NarrativeText = response.narrativeText,
-                                   ResponseCode = response.responseCode,
-                                   SeverityIndicator = response.severityIndicator,
-                                   ReasonCode = response.reasonCode,
-                                   FinalDestinationIndicator = response.finalDispositionIndicator
-                               };
+            {
+                NarrativeText = response.narrativeText,
+                ResponseCode = response.responseCode,
+                SeverityIndicator = response.severityIndicator,
+                ReasonCode = response.reasonCode,
+                FinalDestinationIndicator = response.finalDispositionIndicator
+            };
 
             item.SubmissionResponse.CustomsResponseList.Add(responseItem);
-            return item;
         }
     }
 }

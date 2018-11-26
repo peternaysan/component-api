@@ -13,7 +13,7 @@ namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
     public class FtpaesResponse
     {
         public List<FtpReponseStructure> ftpcommodityShipmentResponse { get; set; }
-        public Ftpcommodityshipment ftpcommodityShipment { get; set; }
+        public List<Ftpcommodityshipment> ftpcommodityShipment { get; set; }
 
     }
 

@@ -101,6 +101,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     return BadRequest("Unable to complete the Submission,Waiting for GETS Response for previous Submission");
                 }
+                if (item.SubmissionStatus == AesStatus.GETSAPPROVED)
+                {
+                    return BadRequest("Unable to complete the Submission,Waiting for Customs Response for previous Submission");
+                }
                 var gfSubmissionDto = new GfSubmissionDto();
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
                 this.mapper.Map(gfSubmissionDto, aesObj);
