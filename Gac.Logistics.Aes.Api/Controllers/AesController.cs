@@ -88,12 +88,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     return BadRequest("Invalid request object. ID Number Type is missing for Intermediate Consignee");
                 }
             }
-           
+
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
                                             .FirstOrDefault();
-           
 
-            if (item!=null)
+
+            if (item != null)
             {
                 var aesObj = item;
                 //check for status
@@ -155,11 +155,9 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 item.SubmissionStatus = AesStatus.DRAFT;
                 item.SubmissionStatusDescription = string.Empty;
-            }           
+            }
             item.DraftDate = DateTime.UtcNow.ToString();
-            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
-
-
+            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);           
             return Ok();
         }
 
@@ -189,8 +187,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
             // message id
-            aesObject.Header.MessageId = "1275";
-            
+            aesObject.Header.MessageId = this.Configuration["AppSettings:MessageId"];
+
             aesObject.StatusNotification = new List<Model.SubClasses.StatusNotification>();
             if (!string.IsNullOrEmpty(aesObject.PicUser?.Email))
             {
@@ -212,64 +210,50 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     Email = aesObject.SubmittedUser.Email
 
                 });
-
             }
 
             this.mapper.Map(aesObject, item);
-            if (aesObject.ShipmentHeader.ShipmentAction != "X")
+            if (item.SubmissionStatus == AesStatus.CUSTOMSREJECTED || item.SubmissionStatus == AesStatus.CUSTOMSAPPROVED)
             {
-                if (aesObject.SubmissionStatus == AesStatus.CUSTOMSREJECTED || aesObject.SubmissionStatus == AesStatus.CUSTOMSAPPROVED)
+                if (item.ShipmentHeader.ShipmentAction != "X")
                 {
-                    aesObject.ShipmentHeader.ShipmentAction = "R";
-                }
-                else 
-                {
-                    aesObject.ShipmentHeader.ShipmentAction = "A";
-                }               
-            }
-            aesObject.Header.ActionType = "ST";
-            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
 
-            // submit to IX
+                    item.ShipmentHeader.ShipmentAction = "R";
+                }
+            }
+            else
+            {
+                item.ShipmentHeader.ShipmentAction = "A";
+            }
+
+            item.Header.ActionType = this.Configuration["AppSettings:ActionType"];
             var getsAes = (GetsAes)item;
-            /*only for testing as instructed by IX team; To be removed before going to production*/
-            //start           
-            getsAes.Header.Signature = "OGbV2RJkqdhQgDNXH1OXmQ==";
-            getsAes.Header.Senderappcode = "GNSG02";
-            getsAes.Header.Sentat = "2018-07-24T23:56:24.551Z";//DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
-            //end          
-            
+
+            /*only for testing as instructed by IX team; To be changed before going to production*/
+            getsAes.Header.Sentat = DateTime.UtcNow.ToString("o");
+            getsAes.Header.Signature = this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Signature, getsAes.Header.Sentat).Result;
+            await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
+            // submit to IX
             var ixResponse = await this.ixService.SubmitAes(getsAes);
             if (ixResponse.HttpStatusCode == HttpStatusCode.OK)
             {
                 item.SubmissionStatus = AesStatus.SUBMITTED;
                 item.SubmittedOn = DateTime.UtcNow;
                 item.SubmissionStatusDescription = "Waiting for confirmation from GETS";
-                response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
+                var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
                 return Ok(response);
             }
             if (ixResponse.HttpStatusCode == HttpStatusCode.BadRequest)
             {
                 return BadRequest(ixResponse.ErrorMessage);
             }
-
+            if (ixResponse.HttpStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return StatusCode(401, "Authorization error when communicating with IX server");
+            }
             return StatusCode(500, "An error occured while communicating with IX server");
         }
 
-
-        //private void MapGfFieldsOnly(Model.Aes sourceAesObj, Model.Aes destnAesObj)
-        //{
-        //    destnAesObj.PicUser = sourceAesObj.PicUser;
-        //    destnAesObj.SubmittedUser = sourceAesObj.SubmittedUser;
-        //    if (sourceAesObj.ShipmentHeader != null)
-        //    {
-        //        destnAesObj.ShipmentHeader.EstimatedExportDate = sourceAesObj.ShipmentHeader.EstimatedExportDate;
-        //        destnAesObj.ShipmentHeader.PortofExportation = sourceAesObj.ShipmentHeader.PortofExportation;
-        //        destnAesObj.ShipmentHeader.PortofExportation = sourceAesObj.ShipmentHeader.PortofUnlading;
-
-        //    }
-           
-        //}        
     }
 }
 
