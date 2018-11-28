@@ -228,10 +228,16 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             item.Header.ActionType = this.Configuration["AppSettings:ActionType"];
             var getsAes = (GetsAes)item;
-
-            /*only for testing as instructed by IX team; To be changed before going to production*/
             getsAes.Header.Sentat = DateTime.UtcNow.ToString("o");
-            getsAes.Header.Signature = this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Signature, getsAes.Header.Sentat).Result;
+            try
+            {
+                var signature= await this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Signature, getsAes.Header.Sentat);
+                getsAes.Header.Signature = signature.Trim('"');
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
             await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
             // submit to IX
             var ixResponse = await this.ixService.SubmitAes(getsAes);

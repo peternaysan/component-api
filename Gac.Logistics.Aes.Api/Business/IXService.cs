@@ -79,8 +79,16 @@ namespace Gac.Logistics.Aes.Api.Business
                 {
                     var tokenEndpoint = this.Configuration["AppSettings:TokenEndpoint"];
                     sharedSecret = this.Configuration["AppSettings:SharedSecret"];
-                    var url = String.Format(tokenEndpoint+"?applicationInstanceCode={0}&dateTime={1}&sharedSecret={2}", senderAppCode, utcDate, sharedSecret);
-                    signature = await client.GetStringAsync(url);
+                    var url = String.Format(tokenEndpoint + "?applicationInstanceCode={0}&dateTime={1}&sharedSecret={2}", senderAppCode, utcDate, sharedSecret);
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        signature = response.Content.ReadAsStringAsync().Result;
+                    }
+                    else
+                    {
+                        throw new Exception("An error occurred while communicating with IX token Service");
+                    }
                 }
             }
             return signature;
