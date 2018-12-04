@@ -82,11 +82,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 if (party.PartyType == "C" && string.IsNullOrEmpty(party.PartyIdType))
                 {
                     return BadRequest("Invalid request object. ID Number Type is missing for Ultimate Consignee");
-                }
-                if (party.PartyType == "I" && string.IsNullOrEmpty(party.PartyIdType))
-                {
-                    return BadRequest("Invalid request object. ID Number Type is missing for Intermediate Consignee");
-                }
+                }               
             }
 
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
@@ -108,6 +104,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 var gfSubmissionDto = new GfSubmissionDto();
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
                 this.mapper.Map(gfSubmissionDto, aesObj);
+                if (aes.Aes.CommodityDetails != null && aes.Aes.CommodityDetails.Count > 0)
+                {
+                    aesObj.CommodityDetails = aes.Aes.CommodityDetails;
+                }
                 //this.mapper.Map(aes.Aes, aesObj);
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
                 return Ok(new
