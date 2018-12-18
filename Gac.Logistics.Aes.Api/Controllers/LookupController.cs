@@ -41,7 +41,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpGet("gethtscode")]
         public async Task<ActionResult> GetHtsCode(string term)
         {
-            var items = await this.htsDbRepository.GetItemsAsync<HtsCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) ||obj.Code.ToLower().Contains(term.ToLower()));            
+            var items = await this.htsDbRepository
+                        .GetTopItemsAsync<HtsCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) ||obj.Code.ToLower().Contains(term.ToLower()), 10);            
             return new ObjectResult(items);
         }
 
