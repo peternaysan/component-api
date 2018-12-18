@@ -71,6 +71,14 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
 
         [JsonProperty("partyType")]
         public string PartyType { get; set; }
+        [JsonProperty("partyName")]
+        public string PartyName { get; set; }
+
+        [JsonProperty("contactFirstName")]
+        public string ContactFirstName { get; set; }
+
+        [JsonProperty("contactLastName")]
+        public string ContactLastName { get; set; }
 
         [JsonProperty("addressLine1")]
         public string AddressLine1 { get; set; }

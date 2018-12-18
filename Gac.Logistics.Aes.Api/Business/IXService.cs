@@ -44,13 +44,13 @@ namespace Gac.Logistics.Aes.Api.Business
                         if (response.StatusCode == HttpStatusCode.BadRequest)
                         {
                             ixErrorDto.HttpStatusCode = HttpStatusCode.BadRequest;
-                            ixErrorDto.ErrorMessage = response.Content.ToString();
+                            ixErrorDto.ErrorMessage = response.Content.ReadAsStringAsync().Result;
                             return ixErrorDto;
                         }
                         if (response.StatusCode == HttpStatusCode.InternalServerError)
                         {
                             ixErrorDto.HttpStatusCode = HttpStatusCode.InternalServerError;
-                            ixErrorDto.ErrorMessage = response.Content.ToString();
+                            ixErrorDto.ErrorMessage = response.Content.ReadAsStringAsync().Result;
                             return ixErrorDto;
                         }
                     }
@@ -62,11 +62,36 @@ namespace Gac.Logistics.Aes.Api.Business
             }
             // to do log error
             var errorDto = new IxErrorDto
-                           {
-                               HttpStatusCode = HttpStatusCode.InternalServerError,
-                               ErrorMessage = "Ix server returned an error"
-                           };
+            {
+                HttpStatusCode = HttpStatusCode.InternalServerError,
+                ErrorMessage = "Ix server returned an error"
+            };
             return errorDto;
+        }
+
+        public async Task<string> GetSignatureAsync(string senderAppCode, string sharedSecret, string utcDate)
+        {
+            string signature;
+            using (var httpClientHandler = new HttpClientHandler())
+            {
+                httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+                using (var client = new HttpClient(httpClientHandler))
+                {
+                    var tokenEndpoint = this.Configuration["AppSettings:TokenEndpoint"];
+                    sharedSecret = this.Configuration["AppSettings:SharedSecret"];
+                    var url = String.Format(tokenEndpoint + "?applicationInstanceCode={0}&dateTime={1}&sharedSecret={2}", senderAppCode, utcDate, sharedSecret);
+                    var response = await client.GetAsync(url);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        signature = response.Content.ReadAsStringAsync().Result;
+                    }
+                    else
+                    {
+                        throw new Exception("An error occurred while communicating with IX token Service");
+                    }
+                }
+            }
+            return signature;
         }
     }
 }

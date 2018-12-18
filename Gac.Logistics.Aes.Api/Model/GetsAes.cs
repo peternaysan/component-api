@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Gac.Logistics.Aes.Api.Model.Acknowledgements;
 using Gac.Logistics.Aes.Api.Model.SubClasses;
 using Newtonsoft.Json;
 
@@ -25,7 +26,7 @@ namespace Gac.Logistics.Aes.Api.Model
         public List<CommodityDetails> CommodityDetails { get; set; }       
 
         [JsonProperty("submissionResponse")]
-        public SubmissionStatus SubmissionResponse { get; set; }
+        public SubmissionResponse SubmissionResponse { get; set; }
 
         [JsonProperty("submissionStatus")]
         public string SubmissionStatus { get; set; }
@@ -34,6 +35,8 @@ namespace Gac.Logistics.Aes.Api.Model
         public string SubmissionStatusDescription { get; set; }
         [JsonProperty("statusNotification")]
         public List<StatusNotification> StatusNotification { get; set; }
+
+        public AckGetsReponse GetsResponse { get; set; }
 
     }
 }
