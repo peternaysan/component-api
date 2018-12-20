@@ -75,6 +75,29 @@ namespace Gac.Logistics.Aes.Api.Data
             return results;
         }
 
+        public async Task<IEnumerable<T>> GetTopItemsAsync<T>(Expression<Func<T, bool>> predicate, int count) where T : class
+        {
+            IDocumentQuery<T> query = Client.CreateDocumentQuery<T>(
+                                                                    UriFactory.CreateDocumentCollectionUri(DatabaseId,
+                                                                                                           CollectionId),
+                                                                    new FeedOptions
+                                                                    {
+                                                                        MaxItemCount = -1,
+                                                                        EnableCrossPartitionQuery = true,
+                                                                    })
+                                            .Where(predicate)
+                                            .Take(count)
+                                            .AsDocumentQuery();
+
+            List<T> results = new List<T>();
+            while (query.HasMoreResults)
+            {
+                results.AddRange(await query.ExecuteNextAsync<T>());
+            }
+
+            return results;
+        }
+
         public async Task<IEnumerable<T>> GetItemsAsync<T>(Expression<Func<T, bool>> predicate) where T : class
         {
             IDocumentQuery<T> query = Client.CreateDocumentQuery<T>(
@@ -93,8 +116,6 @@ namespace Gac.Logistics.Aes.Api.Data
             {
                 results.AddRange(await query.ExecuteNextAsync<T>());
             }
-
-
 
             return results;
         }
