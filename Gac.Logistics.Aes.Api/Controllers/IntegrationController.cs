@@ -10,10 +10,12 @@ using Gac.Logistics.Aes.Api.Model.SubClasses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
+
 namespace Gac.Logistics.Aes.Api.Controllers
 {
     [Route("api/integration")]
     [ApiController]
+    [CustomAuthorize]
     public class IntegrationController : ControllerBase
     {
         private readonly AesDbRepository aesDbRepository;
