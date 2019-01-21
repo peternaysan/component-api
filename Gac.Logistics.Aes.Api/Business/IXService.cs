@@ -69,7 +69,7 @@ namespace Gac.Logistics.Aes.Api.Business
             return errorDto;
         }
 
-        public async Task<string> GetSignatureAsync(string senderAppCode, string sharedSecret, string utcDate)
+        public async Task<string> GetSignatureAsync(string senderAppCode, string utcDate)
         {
             string signature;
             using (var httpClientHandler = new HttpClientHandler())
@@ -78,7 +78,7 @@ namespace Gac.Logistics.Aes.Api.Business
                 using (var client = new HttpClient(httpClientHandler))
                 {
                     var tokenEndpoint = this.Configuration["AppSettings:TokenEndpoint"];
-                    sharedSecret = this.Configuration["AppSettings:SharedSecret"];
+                    string sharedSecret = this.Configuration["AppSettings:SharedSecret"];
                     var url = String.Format(tokenEndpoint + "?applicationInstanceCode={0}&dateTime={1}&sharedSecret={2}", senderAppCode, utcDate, sharedSecret);
                     var response = await client.GetAsync(url);
                     if (response.IsSuccessStatusCode)

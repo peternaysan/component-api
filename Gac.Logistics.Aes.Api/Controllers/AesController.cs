@@ -228,10 +228,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             item.Header.ActionType = this.Configuration["AppSettings:ActionType"];
             var getsAes = (GetsAes)item;
-            getsAes.Header.Sentat = DateTime.UtcNow.ToString("o");
+            getsAes.Header.Sentat = DateTime.UtcNow.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");// DateTime.UtcNow.ToString("o");
+            //getsAes.Header.Sentat = DateTime.UtcNow.ToString("s") + "Z";
+          
+
+
             try
             {
-                var signature= await this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Signature, getsAes.Header.Sentat);
+                var signature= await this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Sentat);
                 getsAes.Header.Signature = signature.Trim('"');
             }
             catch (Exception ex)
