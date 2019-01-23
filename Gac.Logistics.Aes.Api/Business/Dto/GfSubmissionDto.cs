@@ -80,11 +80,17 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
         [JsonProperty("contactLastName")]
         public string ContactLastName { get; set; }
 
+        [JsonProperty("contactPhoneNumber")]
+        public string ContactPhoneNumber { get; set; }
+
         [JsonProperty("addressLine1")]
         public string AddressLine1 { get; set; }
 
         [JsonProperty("countryCode")]
         public string CountryCode { get; set; }
+
+        [JsonProperty("ultimateConsigneeType")]
+        public string UltimateConsigneeType { get; set; }
 
         [JsonProperty("postalCode")]
         public string PostalCode { get; set; }
