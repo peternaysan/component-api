@@ -82,7 +82,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 if (party.PartyType == "C" && string.IsNullOrEmpty(party.PartyIdType))
                 {
                     return BadRequest("Invalid request object. ID Number Type is missing for Ultimate Consignee");
-                }               
+                }
             }
 
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
@@ -101,9 +101,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     return BadRequest("Unable to complete the Submission,Waiting for Customs Response for previous Submission");
                 }
+
+                var usppi = aesObj.ShipmentParty.Find(x => x.PartyType == "E");
                 var gfSubmissionDto = new GfSubmissionDto();
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
                 this.mapper.Map(gfSubmissionDto, aesObj);
+                if (usppi != null)
+                {
+                    aesObj.ShipmentParty.Add(usppi);
+                }
                 if (aes.Aes.CommodityDetails != null && aes.Aes.CommodityDetails.Count > 0)
                 {
                     aesObj.CommodityDetails = aes.Aes.CommodityDetails;
@@ -157,7 +163,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 item.SubmissionStatusDescription = string.Empty;
             }
             item.DraftDate = DateTime.UtcNow.ToString();
-            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);           
+            var response = await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
             return Ok();
         }
 
@@ -229,13 +235,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
             item.Header.ActionType = this.Configuration["AppSettings:ActionType"];
             var getsAes = (GetsAes)item;
             getsAes.Header.Sentat = DateTime.UtcNow.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");// DateTime.UtcNow.ToString("o");
-            //getsAes.Header.Sentat = DateTime.UtcNow.ToString("s") + "Z";
-          
+                                                                                             //getsAes.Header.Sentat = DateTime.UtcNow.ToString("s") + "Z";
+
 
 
             try
             {
-                var signature= await this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Sentat);
+                var signature = await this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Sentat);
                 getsAes.Header.Signature = signature.Trim('"');
             }
             catch (Exception ex)
