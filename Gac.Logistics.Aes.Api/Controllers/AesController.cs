@@ -223,7 +223,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     item.ShipmentHeader.ShipmentAction = "R";
                 }
             }
-            else
+            else if(item.ShipmentHeader.ShipmentAction != "R")
             {
                 item.ShipmentHeader.ShipmentAction = "A";
             }
