@@ -145,7 +145,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 await aesTransactionDbRepository.CreateItemAsync(aesTransaction);
                 
 
-                // signalr notoificatio
+                // signalr notoification
                 await hubContext.Clients.All.SendAsync("customscallback", new
                 {
                     itn = item.ShipmentHeader.OriginalItn,

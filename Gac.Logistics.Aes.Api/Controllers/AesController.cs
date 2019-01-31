@@ -102,10 +102,19 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     return BadRequest("Unable to complete the Submission,Waiting for Customs Response for previous Submission");
                 }
 
+                var freightForwarder = aes.Aes.ShipmentParty.Find(x => x.PartyType == "F");
+
                 var gfSubmissionDto = new GfSubmissionDto();
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
                 this.mapper.Map(gfSubmissionDto, aesObj);
-               
+                foreach (var party in aesObj.ShipmentParty)
+                {
+                    if (party.PartyType == "F" && string.IsNullOrEmpty(party.StateCode))
+                    {
+                        party.StateCode = freightForwarder.StateCode;
+                    }
+                }
+
                 if (aes.Aes.CommodityDetails != null && aes.Aes.CommodityDetails.Count > 0)
                 {
                     aesObj.CommodityDetails = aes.Aes.CommodityDetails;
