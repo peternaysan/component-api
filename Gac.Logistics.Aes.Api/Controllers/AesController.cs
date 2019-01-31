@@ -215,7 +215,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             }
 
             this.mapper.Map(aesObject, item);
-            if (item.SubmissionStatus == AesStatus.CUSTOMSREJECTED || item.SubmissionStatus == AesStatus.CUSTOMSAPPROVED)
+            if (item.SubmissionStatus == AesStatus.CUSTOMSAPPROVED)
             {
                 if (item.ShipmentHeader.ShipmentAction != "X")
                 {
