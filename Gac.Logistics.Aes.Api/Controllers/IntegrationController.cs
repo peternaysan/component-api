@@ -183,34 +183,39 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 foreach (var commodityLineItemGroup in ftpcommodityShipment.ftpcommodityLineItemGroup)
                 {
-
-                    foreach (var lineItemHeaderResponse in commodityLineItemGroup.ftplineItemHeaderResponse)
+                    if (commodityLineItemGroup.ftplineItemHeaderResponse !=null)
                     {
-                        AddItemToCustomsResponse(lineItemHeaderResponse, item);
+                        foreach (var lineItemHeaderResponse in commodityLineItemGroup.ftplineItemHeaderResponse)
+                        {
+                            AddItemToCustomsResponse(lineItemHeaderResponse, item);
 
-                        if (!string.IsNullOrEmpty(lineItemHeaderResponse.internalTransactionNumber))
-                        {
-                            ApplyCustomsSuccessStatus(item, lineItemHeaderResponse);
-                        }
-                        else if (lineItemHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
-                        {
-                            item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                            item.SubmissionStatusDescription = lineItemHeaderResponse.narrativeText;
+                            if (!string.IsNullOrEmpty(lineItemHeaderResponse.internalTransactionNumber))
+                            {
+                                ApplyCustomsSuccessStatus(item, lineItemHeaderResponse);
+                            }
+                            else if (lineItemHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                                item.SubmissionStatusDescription = lineItemHeaderResponse.narrativeText;
+                            }
                         }
                     }
 
-                    foreach (var lineItemHeaderContinuationResponse in commodityLineItemGroup.ftplineItemHeaderContinuationResponse)
+                    if (commodityLineItemGroup.ftplineItemHeaderContinuationResponse !=null)
                     {
-                        AddItemToCustomsResponse(lineItemHeaderContinuationResponse, item);
-                        if (!string.IsNullOrEmpty(lineItemHeaderContinuationResponse.internalTransactionNumber))
+                        foreach (var lineItemHeaderContinuationResponse in commodityLineItemGroup.ftplineItemHeaderContinuationResponse)
                         {
-                            ApplyCustomsSuccessStatus(item, lineItemHeaderContinuationResponse);
+                            AddItemToCustomsResponse(lineItemHeaderContinuationResponse, item);
+                            if (!string.IsNullOrEmpty(lineItemHeaderContinuationResponse.internalTransactionNumber))
+                            {
+                                ApplyCustomsSuccessStatus(item, lineItemHeaderContinuationResponse);
 
-                        }
-                        else if (lineItemHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
-                        {
-                            item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                            item.SubmissionStatusDescription = lineItemHeaderContinuationResponse.narrativeText;
+                            }
+                            else if (lineItemHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                                item.SubmissionStatusDescription = lineItemHeaderContinuationResponse.narrativeText;
+                            }
                         }
                     }
 
