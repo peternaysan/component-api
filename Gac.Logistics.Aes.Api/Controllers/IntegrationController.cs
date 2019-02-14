@@ -335,7 +335,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 }
             }
 
-            if (item.SubmissionStatus != AesStatus.CUSTOMSAPPROVED ||
+            if (item.SubmissionStatus != AesStatus.CUSTOMSAPPROVED &&
                 item.SubmissionStatus != AesStatus.CUSTOMSREJECTED)
             {
                 // nohting found on xml to decide success so failed

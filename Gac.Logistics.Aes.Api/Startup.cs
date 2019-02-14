@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Rewrite;
 using Gac.Logistics.Aes.Api.Business;
 using System;
 using Gac.Logistics.Aes.Api.Hubs;
+using Gac.Logistics.Aes.Api.Profile;
 
 namespace AesComponentApi
 {
@@ -21,12 +22,12 @@ namespace AesComponentApi
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get;  }
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
+
             services.Configure<IISOptions>(options =>
                                            {
                                                options.ForwardClientCertificate = false;
@@ -40,7 +41,12 @@ namespace AesComponentApi
 
             services.AddTransient<IxService, IxService>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                    //.AddJsonOptions(options =>
+                    //                    options.SerializerSettings.Converters
+                    //                           .Add(new EmptyStringToNullJsonConverter()));
+
             services.AddCors(options =>
                              {
                                  options.AddPolicy("CorsPolicy",
@@ -61,11 +67,11 @@ namespace AesComponentApi
             services.AddSwaggerGen(c =>
                                    {
                                        c.SwaggerDoc("v1", new Info
-                                                          {
-                                                              Version = "v1",
-                                                              Title = "Gac Logistics Aes Api",
-                                                              Description = "Web api for the aes component",                                                             
-                                                          });
+                                       {
+                                           Version = "v1",
+                                           Title = "Gac Logistics Aes Api",
+                                           Description = "Web api for the aes component",
+                                       });
                                    });
             // Make Configuration injectable
             services.AddSingleton(Configuration);
@@ -101,6 +107,8 @@ namespace AesComponentApi
                 routes.MapHub<AesHub>("/aesHub");
             });
             app.UseMvc();
+            
+
         }
     }
 }
