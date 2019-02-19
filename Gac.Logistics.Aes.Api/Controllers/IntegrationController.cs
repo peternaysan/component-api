@@ -149,8 +149,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 await hubContext.Clients.All.SendAsync("customscallback", new
                 {
                     itn = item.ShipmentHeader.OriginalItn,
-                    status = item.SubmissionResponse.Status,
-                    description = item.SubmissionStatus,
+                    status = item.SubmissionStatus,
+                    description = item.SubmissionStatusDescription,
                     errorList = item.SubmissionResponse.CustomsResponseList
                 });
 
@@ -270,7 +270,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         foreach (var line in transportationGroup.transportationDetailResponse)
                         {
                             AddItemToCustomsResponse(line, item);
-                            if (string.IsNullOrEmpty(line.internalTransactionNumber))
+                            if (!string.IsNullOrEmpty(line.internalTransactionNumber))
                             {
 
                                 ApplyCustomsSuccessStatus(item, line);
