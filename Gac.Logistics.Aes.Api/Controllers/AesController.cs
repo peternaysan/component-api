@@ -103,6 +103,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 }
 
                 var freightForwarder = aes.Aes.ShipmentParty.Find(x => x.PartyType == "F");
+                var usppiParty = aes.Aes.ShipmentParty.Find(x => x.PartyType == "E");
 
                 var gfSubmissionDto = new GfSubmissionDto();
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
@@ -112,6 +113,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     if (party.PartyType == "F" && string.IsNullOrEmpty(party.StateCode))
                     {
                         party.StateCode = freightForwarder.StateCode;
+                    }
+                    else if(party.PartyType == "E")
+                    {
+                        party.StateCode = usppiParty.StateCode;
                     }
                 }
 
@@ -222,7 +227,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
                 });
             }
-
             this.mapper.Map(aesObject, item);
             if (item.SubmissionStatus == AesStatus.CUSTOMSAPPROVED)
             {
@@ -232,7 +236,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     item.ShipmentHeader.ShipmentAction = "R";
                 }
             }
-            else if(item.ShipmentHeader.ShipmentAction != "R")
+            else if (item.ShipmentHeader.ShipmentAction != "R")
             {
                 item.ShipmentHeader.ShipmentAction = "A";
             }
@@ -252,6 +256,11 @@ namespace Gac.Logistics.Aes.Api.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+            //if MOT=34 (Road,Other) then remove transportationDEtails node
+            if (aesObject.Transportation != null && aesObject.Transportation.ModeofTransport == "34")
+            {
+                aesObject.Transportation.TransportationDetails = null;
             }
             await aesDbRepository.UpdateItemAsync(aesObject.Id, item);
             // submit to IX

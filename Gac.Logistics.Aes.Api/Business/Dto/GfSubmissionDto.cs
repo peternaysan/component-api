@@ -40,6 +40,9 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
 
     public class GfShipmentHeader
     {
+        [JsonProperty("shipmentAction")]
+        public string ShipmentAction { get; set; }
+
         [JsonProperty("shipmentReferenceNumber")]
         public string ShipmentReferenceNumber { get; set; }
 

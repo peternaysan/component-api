@@ -136,14 +136,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
                 //add it to transaction history
                 var aesTransaction = new AesTransaction
-                                     {
-                                         AesDetailEntity = item,
-                                         CreatedOn = DateTime.UtcNow,
-                                         Message = item.SubmissionStatusDescription,
-                                         Status = item.SubmissionStatus
-                                     };
+                {
+                    AesDetailEntity = item,
+                    CreatedOn = DateTime.UtcNow,
+                    Message = item.SubmissionStatusDescription,
+                    Status = item.SubmissionStatus
+                };
                 await aesTransactionDbRepository.CreateItemAsync(aesTransaction);
-                
+
 
                 // signalr notoification
                 await hubContext.Clients.All.SendAsync("customscallback", new
@@ -162,6 +162,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
         private void ProcessCustomsStructure(Ftpcommodityshipment ftpcommodityShipment, Model.Aes item)
         {
+            var isShipmentCancelled = false;
+            var cancelledText = string.Empty;
             item.SubmissionResponse = new SubmissionResponse();
             if (ftpcommodityShipment.ftpshipmentHeaderResponse?.Count > 0)
             {
@@ -177,13 +179,18 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
                         item.SubmissionStatusDescription = shipmentHeaderResponse.narrativeText;
                     }
+                    if (shipmentHeaderResponse.narrativeText.ToUpper().Contains("CANCELLED"))
+                    {
+                        isShipmentCancelled = true;
+                        cancelledText = shipmentHeaderResponse.narrativeText;
+                    }
                 }
             }
             if (ftpcommodityShipment.ftpcommodityLineItemGroup != null)
             {
                 foreach (var commodityLineItemGroup in ftpcommodityShipment.ftpcommodityLineItemGroup)
                 {
-                    if (commodityLineItemGroup.ftplineItemHeaderResponse !=null)
+                    if (commodityLineItemGroup.ftplineItemHeaderResponse != null)
                     {
                         foreach (var lineItemHeaderResponse in commodityLineItemGroup.ftplineItemHeaderResponse)
                         {
@@ -201,7 +208,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         }
                     }
 
-                    if (commodityLineItemGroup.ftplineItemHeaderContinuationResponse !=null)
+                    if (commodityLineItemGroup.ftplineItemHeaderContinuationResponse != null)
                     {
                         foreach (var lineItemHeaderContinuationResponse in commodityLineItemGroup.ftplineItemHeaderContinuationResponse)
                         {
@@ -335,8 +342,14 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 }
             }
 
-            if (item.SubmissionStatus != AesStatus.CUSTOMSAPPROVED &&
-                item.SubmissionStatus != AesStatus.CUSTOMSREJECTED)
+            if (isShipmentCancelled)
+            {
+                item.SubmissionResponse.Status = "SUCCESS";
+                item.SubmissionStatus = AesStatus.CANCELLED;
+                item.SubmissionStatusDescription = cancelledText;
+            }
+            else if (item.SubmissionStatus != AesStatus.CUSTOMSAPPROVED &&
+                 item.SubmissionStatus != AesStatus.CUSTOMSREJECTED)
             {
                 // nohting found on xml to decide success so failed
 

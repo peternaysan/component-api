@@ -14,7 +14,7 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
         [JsonProperty("vesselName")]
         public string VesselName { get; set; }
 
-        [JsonProperty("transportationDetails")]
+        [JsonProperty("transportationDetails", NullValueHandling = NullValueHandling.Ignore)]
         public List<TransportationDetails> TransportationDetails { get; set; }
     }
 
