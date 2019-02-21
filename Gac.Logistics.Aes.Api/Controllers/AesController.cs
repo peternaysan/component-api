@@ -50,6 +50,22 @@ namespace Gac.Logistics.Aes.Api.Controllers
             return new ObjectResult(item);
         }
 
+
+        [HttpGet("getsubmissionstatus")]
+        public async Task<ActionResult> GetSubmissionStatus(string id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+            var item = await this.aesDbRepository.GetItemAsync<Api.Model.Aes>(id);
+            return new ObjectResult(new
+                                    {   item.SubmissionStatus,
+                                        item.SubmittedOn,
+                                        item.ShipmentHeader.ShipmentReferenceNumber
+                                    });
+        }
+
         // POST used by GF
         [HttpPost]
         public async Task<ActionResult> Post(Api.Model.AesExternal aes)
