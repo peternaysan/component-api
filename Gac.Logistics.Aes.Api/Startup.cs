@@ -42,10 +42,10 @@ namespace AesComponentApi
             services.AddTransient<IxService, IxService>();
 
             services.AddMvc()
-                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-                    //.AddJsonOptions(options =>
-                    //                    options.SerializerSettings.Converters
-                    //                           .Add(new EmptyStringToNullJsonConverter()));
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                    .AddJsonOptions(options =>
+                                        options.SerializerSettings.Converters
+                                               .Add(new EmptyStringToNullJsonConverter()));
 
             services.AddCors(options =>
                              {

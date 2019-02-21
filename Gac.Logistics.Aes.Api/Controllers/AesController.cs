@@ -103,9 +103,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 }
 
                 var freightForwarder = aes.Aes.ShipmentParty.Find(x => x.PartyType == "F");
-                var usppiParty = aes.Aes.ShipmentParty.Find(x => x.PartyType == "E");
-
+                var usppi = aesObj.ShipmentParty.Find(x => x.PartyType == "E");
+                //properties that needs to be replaced by GF everytime, are added in GfSubmissionDto
                 var gfSubmissionDto = new GfSubmissionDto();
+                //map incoming object values to GfSubmissionDto and then map GfSubmissionDto to existing database object aesObj
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
                 this.mapper.Map(gfSubmissionDto, aesObj);
                 foreach (var party in aesObj.ShipmentParty)
@@ -116,12 +117,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     }
                     else if(party.PartyType == "E")
                     {
-                        party.StateCode = usppiParty.StateCode;
+                        //retain usppi statecode as its not coming from GF
+                        party.StateCode = usppi.StateCode;
                     }
                 }
 
                 if (aes.Aes.CommodityDetails != null && aes.Aes.CommodityDetails.Count > 0)
-                {
+                {                    
                     aesObj.CommodityDetails = aes.Aes.CommodityDetails;
                 }
                 //this.mapper.Map(aes.Aes, aesObj);
