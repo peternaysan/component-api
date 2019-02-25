@@ -102,35 +102,35 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
         public string City { get; set; }
     }
 
-    public class GfCommodityDetails
-    {
-        [JsonProperty("commodityLineDetails")]
-        public GfCommodityLineDetails CommodityLineDetails { get; set; }
+    //public class GfCommodityDetails
+    //{
+    //    [JsonProperty("commodityLineDetails")]
+    //    public GfCommodityLineDetails CommodityLineDetails { get; set; }
 
-        [JsonProperty("licenseDetails")]
-        public GfCommodityLicenseDetails LicenseDetails { get; set; }
-    }
+    //    [JsonProperty("licenseDetails")]
+    //    public GfCommodityLicenseDetails LicenseDetails { get; set; }
+    //}
 
-    public class GfCommodityLineDetails
-    {
-        [JsonProperty("exportInformationCode")]
-        public string ExportInformationCode { get; set; }
+    //public class GfCommodityLineDetails
+    //{
+    //    [JsonProperty("exportInformationCode")]
+    //    public string ExportInformationCode { get; set; }
 
-        [JsonProperty("htsNumber")]
-        public string HTSNumber { get; set; }
+    //    [JsonProperty("htsNumber")]
+    //    public string HTSNumber { get; set; }
 
-        [JsonProperty("commodityDescription")]
-        public string CommodityDescription { get; set; }
+    //    [JsonProperty("commodityDescription")]
+    //    public string CommodityDescription { get; set; }
 
-        [JsonProperty("valueofGoods")]
-        public string ValueofGoods { get; set; }
-    }
+    //    [JsonProperty("valueofGoods")]
+    //    public string ValueofGoods { get; set; }
+    //}
 
-    public class GfCommodityLicenseDetails
-    {
-        [JsonProperty("eccn")]
-        public string Eccn { get; set; }
-    }
+    //public class GfCommodityLicenseDetails
+    //{
+    //    [JsonProperty("eccn")]
+    //    public string Eccn { get; set; }
+    //}
 
     public class GfTransportation
     {
@@ -150,15 +150,12 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
     public class GfTransportationDetails
     {
         [JsonProperty("equipmentNumber")]
-
         public string EquipmentNumber { get; set; }
 
         [JsonProperty("sealNumber")]
-
         public string SealNumber { get; set; }
 
         [JsonProperty("transportationReferenceNumber")]
-
         public string TransportationReferenceNumber { get; set; }
     }
 }

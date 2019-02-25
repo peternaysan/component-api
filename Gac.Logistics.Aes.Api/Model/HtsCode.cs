@@ -14,8 +14,10 @@ namespace Gac.Logistics.Aes.Api.Model
         public string Name { get; set; }
         [JsonProperty("code")]
         public string Code { get; set; }
-        [JsonProperty("uom")]
-        public string Uom { get; set; }
+        [JsonProperty("uom1")]
+        public string Uom1 { get; set; }
+        [JsonProperty("uom2")]
+        public string Uom2 { get; set; }
 
     }
 }
