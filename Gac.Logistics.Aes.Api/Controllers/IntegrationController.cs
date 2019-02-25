@@ -163,7 +163,9 @@ namespace Gac.Logistics.Aes.Api.Controllers
         private void ProcessCustomsStructure(Ftpcommodityshipment ftpcommodityShipment, Model.Aes item)
         {
             var isShipmentCancelled = false;
-            var cancelledText = string.Empty;
+            var responseText = string.Empty;
+            var isShipmentRejected = false;
+            
             item.SubmissionResponse = new SubmissionResponse();
             if (ftpcommodityShipment.ftpshipmentHeaderResponse?.Count > 0)
             {
@@ -174,15 +176,17 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     {
                         ApplyCustomsSuccessStatus(item, shipmentHeaderResponse);
                     }
-                    else if (shipmentHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                    if (shipmentHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
                     {
-                        item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                        item.SubmissionStatusDescription = shipmentHeaderResponse.narrativeText;
+                        //item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                        //item.SubmissionStatusDescription = shipmentHeaderResponse.narrativeText;
+                        isShipmentRejected = true;
+                        responseText = shipmentHeaderResponse.narrativeText;
                     }
                     if (shipmentHeaderResponse.narrativeText.ToUpper().Contains("CANCELLED"))
                     {
                         isShipmentCancelled = true;
-                        cancelledText = shipmentHeaderResponse.narrativeText;
+                        responseText = shipmentHeaderResponse.narrativeText;
                     }
                 }
             }
@@ -200,10 +204,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                             {
                                 ApplyCustomsSuccessStatus(item, lineItemHeaderResponse);
                             }
-                            else if (lineItemHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            if (lineItemHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
                             {
-                                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                                item.SubmissionStatusDescription = lineItemHeaderResponse.narrativeText;
+                                isShipmentRejected = true;
+                                responseText = lineItemHeaderResponse.narrativeText;
                             }
                         }
                     }
@@ -218,10 +222,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                                 ApplyCustomsSuccessStatus(item, lineItemHeaderContinuationResponse);
 
                             }
-                            else if (lineItemHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            if (lineItemHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
                             {
-                                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                                item.SubmissionStatusDescription = lineItemHeaderContinuationResponse.narrativeText;
+                                isShipmentRejected = true;
+                                responseText = lineItemHeaderContinuationResponse.narrativeText;
                             }
                         }
                     }
@@ -236,16 +240,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
                                 ApplyCustomsSuccessStatus(item, licenseDetailResponse);
 
                             }
-                            else if (licenseDetailResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            if (licenseDetailResponse.narrativeText.ToUpper().Contains("REJECTED"))
                             {
-                                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                                item.SubmissionStatusDescription = licenseDetailResponse.narrativeText;
+                                isShipmentRejected = true;
+                                responseText = licenseDetailResponse.narrativeText;
                             }
-
                         }
                     }
-
-
                 }
             }
 
@@ -259,10 +260,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     {
                         ApplyCustomsSuccessStatus(item, shipmentHeaderContinuationResponse);
                     }
-                    else if (shipmentHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                    if (shipmentHeaderContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
                     {
-                        item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                        item.SubmissionStatusDescription = shipmentHeaderContinuationResponse.narrativeText;
+                        isShipmentRejected = true;
+                        responseText = shipmentHeaderContinuationResponse.narrativeText;
                     }
 
 
@@ -282,9 +283,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
                                 ApplyCustomsSuccessStatus(item, line);
                             }
-                            else if (line.narrativeText.ToUpper().Contains("REJECTED"))
+                            if (line.narrativeText.ToUpper().Contains("REJECTED"))
                             {
-                                ApplyCustomsFailureStatus(item, line);
+                                isShipmentRejected = true;
+                                responseText = line.narrativeText;
                             }
 
                         }
@@ -307,9 +309,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                             {
                                 ApplyCustomsSuccessStatus(item, partyHeaderResponse);
                             }
-                            else if (partyHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            if (partyHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
                             {
-                                ApplyCustomsFailureStatus(item, partyHeaderResponse);
+                                isShipmentRejected = true;
+                                responseText = partyHeaderResponse.narrativeText;
                             }
                         }
                     }
@@ -322,8 +325,11 @@ namespace Gac.Logistics.Aes.Api.Controllers
                             AddItemToCustomsResponse(partyAddressResponse, item);
                             if (!string.IsNullOrEmpty(partyAddressResponse.internalTransactionNumber))
                                 ApplyCustomsSuccessStatus(item, partyAddressResponse);
-                            else if (partyAddressResponse.narrativeText.ToUpper().Contains("REJECTED"))
-                                ApplyCustomsFailureStatus(item, partyAddressResponse);
+                            if (partyAddressResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                isShipmentRejected = true;
+                                responseText = partyAddressResponse.narrativeText;
+                            }
                         }
                     }
 
@@ -335,8 +341,11 @@ namespace Gac.Logistics.Aes.Api.Controllers
                             AddItemToCustomsResponse(partyAddressContinuationResponse, item);
                             if (!string.IsNullOrEmpty(partyAddressContinuationResponse.internalTransactionNumber))
                                 ApplyCustomsSuccessStatus(item, partyAddressContinuationResponse);
-                            else if (partyAddressContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
-                                ApplyCustomsFailureStatus(item, partyAddressContinuationResponse);
+                            if (partyAddressContinuationResponse.narrativeText.ToUpper().Contains("REJECTED"))
+                            {
+                                isShipmentRejected = true;
+                                responseText = partyAddressContinuationResponse.narrativeText;
+                            }
                         }
                     }
                 }
@@ -346,7 +355,12 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 item.SubmissionResponse.Status = "SUCCESS";
                 item.SubmissionStatus = AesStatus.CANCELLED;
-                item.SubmissionStatusDescription = cancelledText;
+                item.SubmissionStatusDescription = responseText;
+            }
+           else if (isShipmentRejected)
+            {
+                item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
+                item.SubmissionStatusDescription = responseText;
             }
             else if (item.SubmissionStatus != AesStatus.CUSTOMSAPPROVED &&
                  item.SubmissionStatus != AesStatus.CUSTOMSREJECTED)

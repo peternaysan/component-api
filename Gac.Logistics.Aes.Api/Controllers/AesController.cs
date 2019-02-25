@@ -93,12 +93,19 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid request object.Instance Code is missing or having invalid value");
             }
 
+            var isUltimateConsignee = false;
             foreach (var party in aes.Aes.ShipmentParty)
             {
-                if (party.PartyType == "C" && string.IsNullOrEmpty(party.PartyIdType))
+                if (party.PartyType == "C")
                 {
-                    return BadRequest("Invalid request object. ID Number Type is missing for Ultimate Consignee");
+                    isUltimateConsignee = true;
+                   break;
                 }
+                
+            }
+            if (!isUltimateConsignee)
+            {
+                return BadRequest("Invalid request object.Ultimate Consignee is missing");
             }
 
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
