@@ -62,7 +62,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo}");
             }
 
-
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
@@ -81,6 +80,11 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 }
                 item.GetsResponse = getsResponse;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
+            }
+            else if (getsResponse.Ack.Aes.Status == GetsStatus.SUBMITTED)
+            {
+                // ignore in AES, submition response intended for GF
+                return Ok(true);
             }
             else
             {

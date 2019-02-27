@@ -19,6 +19,7 @@ namespace Gac.Logistics.Aes.Api.Model
 
     public static class GetsStatus
     {
+        public const string SUBMITTED = "SUBMITTED";
         public const string SUCCESS = "SUCCESS";
         public const string FAIL = "FAIL";
     }
