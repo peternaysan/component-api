@@ -25,6 +25,12 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
         [JsonProperty("quantity1Uom")]
         public string Quantity1UOM { get; set; }
 
+        [JsonProperty("quantity2")]
+        public string Quantity2 { get; set; }
+
+        [JsonProperty("quantity2Uom")]
+        public string Quantity2UOM { get; set; }
+
         [JsonProperty("valueofGoods")]
         public string ValueofGoods { get; set; }
 
