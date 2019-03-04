@@ -155,7 +155,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     itn = item.ShipmentHeader.OriginalItn,
                     status = item.SubmissionStatus,
                     description = item.SubmissionStatusDescription,
-                    errorList = item.SubmissionResponse.CustomsResponseList
+                    errorList = item.SubmissionResponse.CustomsResponseList,
+                    shipmentRefNo=item.ShipmentHeader.ShipmentReferenceNumber
                 });
 
 

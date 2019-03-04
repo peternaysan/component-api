@@ -38,6 +38,7 @@ namespace AesComponentApi
             services.AddTransient<CountryDbRepository, CountryDbRepository>();
             services.AddTransient<HtsDbRepository, HtsDbRepository>();
             services.AddTransient<LicenseExemptionCodeDbRepository, LicenseExemptionCodeDbRepository>();
+            services.AddTransient<ExportInformationCodeDbRepository, ExportInformationCodeDbRepository>();
 
             services.AddTransient<IxService, IxService>();
 
