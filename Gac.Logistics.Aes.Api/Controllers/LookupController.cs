@@ -17,23 +17,28 @@ namespace Gac.Logistics.Aes.Api.Controllers
         private readonly CountryDbRepository countryDbRepository;
         private readonly HtsDbRepository htsDbRepository;
         private readonly LicenseExemptionCodeDbRepository licenseExemptionCodeDbRepository;
+        private readonly ExportInformationCodeDbRepository exportInformationCodeDbRepository;
 
 
         private readonly IMapper mapper;
 
-        public LookUpController(CountryDbRepository countryDbRepository, IMapper mapper, HtsDbRepository htsDbRepository, LicenseExemptionCodeDbRepository licenseExemptionCodeDbRepository)
+        public LookUpController(CountryDbRepository countryDbRepository,
+                                IMapper mapper,
+                                HtsDbRepository htsDbRepository,
+                                LicenseExemptionCodeDbRepository licenseExemptionCodeDbRepository,
+                                ExportInformationCodeDbRepository exportInformationCodeDbRepository)
         {
             this.countryDbRepository = countryDbRepository;
             this.htsDbRepository = htsDbRepository;
             this.mapper = mapper;
             this.licenseExemptionCodeDbRepository = licenseExemptionCodeDbRepository;
-
+            this.exportInformationCodeDbRepository = exportInformationCodeDbRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult> GetAllStates(string country)
-        {          
-            var items =  await this.countryDbRepository.GetItemsAsync<Country>(obj=>obj.Name.ToLower().Contains(country.ToLower()));
+        {
+            var items = await this.countryDbRepository.GetItemsAsync<Country>(obj => obj.Name.ToLower().Contains(country.ToLower()));
             var states = items.Select(obj => obj.States).First();
             return new ObjectResult(states);
         }
@@ -42,7 +47,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
         public async Task<ActionResult> GetHtsCode(string term)
         {
             var items = await this.htsDbRepository
-                        .GetTopItemsAsync<HtsCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) ||obj.Code.ToLower().Contains(term.ToLower()), 10);            
+                        .GetTopItemsAsync<HtsCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) || obj.Code.ToLower().Contains(term.ToLower()), 10);
             return new ObjectResult(items);
         }
 
@@ -51,6 +56,19 @@ namespace Gac.Logistics.Aes.Api.Controllers
         {
             var items = await this.licenseExemptionCodeDbRepository.GetItemsAsync<LicenseExemptionCode>(obj => obj.Name.ToLower().Contains(term.ToLower()) || obj.Code.ToLower().Contains(term.ToLower()));
             return new ObjectResult(items);
+        }
+
+        [HttpGet("getexportinformationcode")]
+        public async Task<ActionResult> GetExportInformationCode()
+        {
+            var items = await this.exportInformationCodeDbRepository.GetItemsAsync<ExportInformationCode>();
+            var mappedItems = items.Select(x => new
+                                       {
+                                           name = x.Description,
+                                           code = x.Code
+                                       });
+            
+            return new ObjectResult(mappedItems);
         }
 
     }
