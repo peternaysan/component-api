@@ -101,17 +101,16 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     isUltimateConsignee = true;
                    break;
                 }
-                
             }
+
             if (!isUltimateConsignee)
             {
                 return BadRequest("Invalid request object.Ultimate Consignee is missing");
             }
 
-            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
-                                            .FirstOrDefault();
-
-
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.BookingId == aes.Aes.BookingId && 
+                                                                       obj.Header.Senderappcode == aes.Aes.Header.Senderappcode).Result
+                                                                       .FirstOrDefault();
             if (item != null)
             {
                 var aesObj = item;
@@ -149,8 +148,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {                    
                     aesObj.CommodityDetails = aes.Aes.CommodityDetails;
                 }
-                //this.mapper.Map(aes.Aes, aesObj);
+
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
+
+                // handle direct cancellation scenario from GF , cancellation only send to IX if the shipment is already accepted from customs
+                if (aes.Aes.SubmissionStatus == AesStatus.CUSTOMSAPPROVED && aes.Aes.ShipmentHeader.ShipmentAction == "X") // x = cancelled
+                {
+                    await this.Submit(aesObj);
+                }
+
                 return Ok(new
                 {
                     id = response.Id,
@@ -257,7 +263,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 if (item.ShipmentHeader.ShipmentAction != "X")
                 {
-
                     item.ShipmentHeader.ShipmentAction = "R";
                 }
             }
