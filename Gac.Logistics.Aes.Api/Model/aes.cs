@@ -17,7 +17,7 @@ namespace Gac.Logistics.Aes.Api.Model
         public string BookingId { get; set; }
 
         [JsonProperty("IsUserAllowToEdit")]
-        public bool IsUserAllowToEdit { get; set; }
+        public string IsUserAllowToEdit { get; set; }
 
         [JsonProperty("createdBy")]
         public string CreatedBy { get; set; }
