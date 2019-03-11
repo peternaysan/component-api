@@ -152,7 +152,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 var response = await aesDbRepository.UpdateItemAsync(aesObj.Id, aesObj);
 
                 // handle direct cancellation scenario from GF , cancellation only send to IX if the shipment is already accepted from customs
-                if (aes.Aes.SubmissionStatus == AesStatus.CUSTOMSAPPROVED && aes.Aes.ShipmentHeader.ShipmentAction == "X") // x = cancelled
+                if (item.SubmissionStatus == AesStatus.CUSTOMSAPPROVED && aes.Aes.ShipmentHeader.ShipmentAction == "X") // x = cancelled
                 {
                     await this.Submit(aesObj);
                 }
@@ -314,6 +314,42 @@ namespace Gac.Logistics.Aes.Api.Controllers
             return StatusCode(500, "An error occured while communicating with IX server");
         }
 
+        [HttpPost("GetBySenderAppCode")]
+        public async Task<ActionResult> GetBySenderAppCode(string senderAppCode)
+        {
+            if (senderAppCode == null)
+            {
+                return BadRequest();
+            }
+
+            var items = await this.aesDbRepository.GetItemsAsync<Model.Aes>(x => x.Header.Senderappcode == senderAppCode);
+            
+            return new ObjectResult(items.Count());
+        }
+
+        //[HttpPost("deletebysenderappcode")]
+        //public async Task<ActionResult> DeleteBySenderAppcode(string senderAppCode)
+        //{
+        //    if (senderAppCode == null)
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    var items = await this.aesDbRepository.GetItemsAsync<Model.Aes>(x => x.Header.Senderappcode == senderAppCode && x.SubmittedOn < new DateTime(2019, 02, 28));            
+        //    var deletedItems= new List<dynamic>();
+        //    foreach (var item in items)
+        //    {
+        //       await this.aesDbRepository.DeleteItemAsync(item.Id);
+        //        deletedItems.Add(new
+        //                         {
+        //                             id = item.Id,
+        //                             bookingId = item.BookingId,
+        //                             shipmentRefNum=item.ShipmentHeader?.ShipmentReferenceNumber,
+        //                             senderappcode = item.Header?.Senderappcode
+        //                         });
+        //    }
+        //    return new ObjectResult(deletedItems);
+        //}
     }
 }
 
