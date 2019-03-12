@@ -182,9 +182,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         ApplyCustomsSuccessStatus(item, shipmentHeaderResponse);
                     }
                     if (shipmentHeaderResponse.narrativeText.ToUpper().Contains("REJECTED"))
-                    {
-                        //item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-                        //item.SubmissionStatusDescription = shipmentHeaderResponse.narrativeText;
+                    {                      
                         isShipmentRejected = true;
                         responseText = shipmentHeaderResponse.narrativeText;
                     }
@@ -385,13 +383,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             item.SubmissionStatus = AesStatus.CUSTOMSAPPROVED;
             item.SubmissionStatusDescription = response.narrativeText;
             item.ShipmentHeader.OriginalItn = response.internalTransactionNumber;
-        }
-
-        private static void ApplyCustomsFailureStatus(Model.Aes item, FtpReponseStructure response)
-        {
-            item.SubmissionStatus = AesStatus.CUSTOMSREJECTED;
-            item.SubmissionStatusDescription = response.narrativeText;
-        }
+        }  
 
         private void AddItemToCustomsResponse(FtpReponseStructure response, Model.Aes item)
         {
