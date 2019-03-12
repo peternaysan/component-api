@@ -1,13 +1,13 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
 {
     public class AesCustomsResponse
     {
         public FtpaesResponse ftpaesResponse { get; set; }
+        public string senderappcode { get; set; }
     }
 
     public class FtpaesResponse
