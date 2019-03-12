@@ -45,6 +45,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid gets response object, AES is missing");
             }
+            if (getsResponse.Senderappcode == null)
+            {
+                return BadRequest("Invalid gets response object, sender app code is missing");
+            }
             if (getsResponse.Ack.Aes == null)
             {
                 return BadRequest("Invalid gets response object, AES is missing");
@@ -54,20 +58,19 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid gets response object, ACK->AES->ShipmentReferenceNumber is missing");
             }
 
-            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.Ack.Aes.ShipmentRefNo)
+            var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.Ack.Aes.ShipmentRefNo && obj.Header.Senderappcode==getsResponse.Senderappcode)
                                 .Result
                                 .FirstOrDefault();
             if (item == null)
             {
-                return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo}");
+                return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo} and sender App code ${getsResponse.Senderappcode}");
             }
 
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
             {
                 item.SubmissionStatus = AesStatus.GETSAPPROVED;
                 item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
-                AckGetsReponse getsRes;
-                getsRes = getsResponse;
+                var getsRes = getsResponse;
                 item.GetsResponse = getsRes;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
@@ -106,13 +109,15 @@ namespace Gac.Logistics.Aes.Api.Controllers
             {
                 return BadRequest("Invalid gets response object,ftpaesResponse node is missing");
             }
+            if (customsReponse.senderappcode == null)
+            {
+                return BadRequest("Invalid gets response object,sender app code is missing");
+            }
 
             if (customsReponse.ftpaesResponse.ftpcommodityShipment == null)
             {
                 return BadRequest("Invalid gets response object, ftpcommodityShipment node is missing");
-            }
-
-            //var ftpcommodityShipment = customsReponse.ftpaesResponse.ftpcommodityShipment;
+            }            
 
             foreach (var ftpcommodityShipment in customsReponse.ftpaesResponse.ftpcommodityShipment)
             {
@@ -125,12 +130,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 {
                     return BadRequest("Invalid gets response object, ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber is missing");
                 }
-                var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber)
+                var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber &&
+                                                                            obj.Header.Senderappcode== customsReponse.senderappcode)
                                           .Result
                                           .FirstOrDefault();
                 if (item == null)
                 {
-                    return BadRequest($"Invalid shipment reference no ${ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber}");
+                    return BadRequest($"Invalid shipment reference no ${ftpcommodityShipment.ftpshipmentHeader.shipmentReferenceNumber} and senderappcode ${customsReponse.senderappcode}");
                 }
 
                 // important function go and see inside
@@ -156,7 +162,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     status = item.SubmissionStatus,
                     description = item.SubmissionStatusDescription,
                     errorList = item.SubmissionResponse.CustomsResponseList,
-                    shipmentRefNo=item.ShipmentHeader.ShipmentReferenceNumber
+                    shipmentRefNo=item.ShipmentHeader.ShipmentReferenceNumber,
+                    senderappcode=item.Header.Senderappcode
                 });
 
 

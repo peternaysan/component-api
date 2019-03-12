@@ -10,7 +10,7 @@ namespace Gac.Logistics.Aes.Api.Model.Acknowledgements
     public class AckGetsReponse
     {
         public AckWrapper Ack { get; set; }
-       
+        public string Senderappcode { get; set; }
     }
 
     public class AckWrapper
