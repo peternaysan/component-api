@@ -239,7 +239,7 @@ namespace Gac.Logistics.Aes.Api.Data
                         await Client.CreateDocumentCollectionAsync(
                             UriFactory.CreateDatabaseUri(DatabaseId),
                             new DocumentCollection { Id = CollectionId },
-                            new RequestOptions { OfferThroughput = 1000 });
+                            new RequestOptions { OfferThroughput = 400 });
                     }
                     else
                     {
@@ -253,7 +253,7 @@ namespace Gac.Logistics.Aes.Api.Data
                                     Paths = new Collection<string> { "/" + partitionkey }
                                 }
                             },
-                            new RequestOptions { OfferThroughput = 1000 });
+                            new RequestOptions { OfferThroughput = 400 });
                     }
 
                 }

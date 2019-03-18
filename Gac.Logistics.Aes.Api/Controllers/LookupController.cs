@@ -35,7 +35,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             this.exportInformationCodeDbRepository = exportInformationCodeDbRepository;
         }
 
-        [HttpGet]
+        [HttpGet("getallstates")]
         public async Task<ActionResult> GetAllStates(string country)
         {
             var items = await this.countryDbRepository.GetItemsAsync<Country>(obj => obj.Name.ToLower().Contains(country.ToLower()));

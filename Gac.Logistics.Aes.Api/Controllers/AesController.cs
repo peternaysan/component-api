@@ -314,7 +314,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
             return StatusCode(500, "An error occured while communicating with IX server");
         }
 
-        [HttpPost("GetBySenderAppCode")]
+        [HttpGet("GetBySenderAppCode")]
         public async Task<ActionResult> GetBySenderAppCode(string senderAppCode)
         {
             if (senderAppCode == null)
@@ -349,7 +349,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
         //                         });
         //    }
         //    return new ObjectResult(deletedItems);
-        //}
+        //}       
     }
 }
 
