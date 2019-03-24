@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ApplicationInsightsResourceId>/subscriptions/0e89f085-db6a-41f9-8751-43d54f419dda/resourcegroups/RG-Logistics-AES-Production/providers/microsoft.insights/components/aesapiprod</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/0e89f085-db6a-41f9-8751-43d54f419dda/resourcegroups/RG-Logistics-AES-Production/providers/microsoft.insights/components/aesapiprod</ApplicationInsightsAnnotationResourceId>
     <Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
 

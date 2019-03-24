@@ -36,26 +36,37 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpPost("ackgetsresponse")]
         public async Task<ActionResult> AckGetsResponse(AckGetsReponse getsResponse)
         {
+            var telemetry = new Microsoft.ApplicationInsights.TelemetryClient();
             if (getsResponse == null)
             {
-                return BadRequest("Invalid gets response object");
+                var message = "Invalid gets response object, ackgetsresponse payload shoud not be null";
+                telemetry.TrackTrace(message);
+                return BadRequest(message);
             }
 
             if (getsResponse.Ack == null)
             {
-                return BadRequest("Invalid gets response object, AES is missing");
+                var message = "Invalid gets response object, getsResponse.Ack is missing in ackgetsresponse payload";
+                telemetry.TrackTrace(message);
+                return BadRequest(message);
             }
             if (getsResponse.Senderappcode == null)
             {
-                return BadRequest("Invalid gets response object, sender app code is missing");
+                var message = "Invalid gets response object, getsResponse.Senderappcode is missing in ackgetsresponse";
+                telemetry.TrackTrace(message);
+                return BadRequest(message);
             }
             if (getsResponse.Ack.Aes == null)
             {
-                return BadRequest("Invalid gets response object, AES is missing");
+                var message = "Invalid gets response object, getsResponse.Ack.Aes is missing in ackgetsresponse";
+                telemetry.TrackTrace(message);
+                return BadRequest(message);
             }
             if (string.IsNullOrEmpty(getsResponse.Ack.Aes.ShipmentRefNo))
             {
-                return BadRequest("Invalid gets response object, ACK->AES->ShipmentReferenceNumber is missing");
+                var message = "Invalid gets response object, ACK->AES->ShipmentReferenceNumber is missing in ackgetsresponse";
+                telemetry.TrackTrace(message);
+                return BadRequest(message);
             }
 
             var item = aesDbRepository.GetItemsAsync<Model.Aes>(obj => obj.ShipmentHeader.ShipmentReferenceNumber == getsResponse.Ack.Aes.ShipmentRefNo && obj.Header.Senderappcode==getsResponse.Senderappcode)
@@ -63,7 +74,8 @@ namespace Gac.Logistics.Aes.Api.Controllers
                                 .FirstOrDefault();
             if (item == null)
             {
-                return BadRequest($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo} and sender App code ${getsResponse.Senderappcode}");
+                telemetry.TrackTrace($"Invalid shipment reference no ${getsResponse.Ack.Aes.ShipmentRefNo} and sender App code ${getsResponse.Senderappcode}");
+                return Ok();
             }
 
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
