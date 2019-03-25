@@ -126,11 +126,13 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
                 var freightForwarder = aes.Aes.ShipmentParty.Find(x => x.PartyType == "F");
                 var usppi = aesObj.ShipmentParty.Find(x => x.PartyType == "E");
+                var oldUltimateConsignee = aesObj.ShipmentParty.Find(x => x.PartyType == "C");
                 //properties that needs to be replaced by GF everytime, are added in GfSubmissionDto
                 var gfSubmissionDto = new GfSubmissionDto();
                 //map incoming object values to GfSubmissionDto and then map GfSubmissionDto to existing database object aesObj
                 this.mapper.Map(aes.Aes, gfSubmissionDto);
                 this.mapper.Map(gfSubmissionDto, aesObj);
+                var replaceUltimateConsignee = false;
                 foreach (var party in aesObj.ShipmentParty)
                 {
                     if (party.PartyType == "F" && string.IsNullOrEmpty(party.StateCode))
@@ -142,6 +144,21 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         //retain usppi statecode as its not coming from GF
                         party.StateCode = usppi.StateCode;
                     }
+                    else if (party.PartyType == "C" && party.consigneeFromGf == "N")
+                    {
+                        replaceUltimateConsignee = true;
+                    }
+                }
+
+                if (replaceUltimateConsignee) // patch for keeping old ultimate consignee from GF based user choice in AES component
+                {
+                    var ultimateIndex = aesObj.ShipmentParty.FindIndex(party => party.PartyType == "C");
+                    if(ultimateIndex >= 0)
+                    {
+                        aesObj.ShipmentParty.Remove(aesObj.ShipmentParty[ultimateIndex]);
+                        aesObj.ShipmentParty.Add(oldUltimateConsignee);
+                    }
+
                 }
 
                 if (aes.Aes.CommodityDetails != null && aes.Aes.CommodityDetails.Count > 0)
@@ -275,9 +292,6 @@ namespace Gac.Logistics.Aes.Api.Controllers
             var getsAes = (GetsAes)item;
             getsAes.Header.Sentat = DateTime.UtcNow.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");// DateTime.UtcNow.ToString("o");
                                                                                              //getsAes.Header.Sentat = DateTime.UtcNow.ToString("s") + "Z";
-
-
-
             try
             {
                 var signature = await this.ixService.GetSignatureAsync(getsAes.Header.Senderappcode, getsAes.Header.Sentat);

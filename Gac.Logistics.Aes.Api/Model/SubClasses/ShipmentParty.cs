@@ -54,5 +54,8 @@ namespace Gac.Logistics.Aes.Api.Model.SubClasses
 
         [JsonProperty("toBeSoldenRouteIndicator")]
         public string ToBeSoldenRouteIndicator { get; set; }
+
+        [JsonProperty("consigneeFromGf")]
+        public string consigneeFromGf { get; set; }
     }
 }
