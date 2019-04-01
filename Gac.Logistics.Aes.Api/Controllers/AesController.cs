@@ -144,9 +144,10 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         //retain usppi statecode as its not coming from GF
                         party.StateCode = usppi.StateCode;
                     }
-                    else if (party.PartyType == "C" && party.consigneeFromGf == "N")
+                    else if (party.PartyType == "C")
                     {
-                        replaceUltimateConsignee = true;
+                        replaceUltimateConsignee = oldUltimateConsignee.consigneeFromGf == "N";
+                        party.consigneeFromGf = oldUltimateConsignee.consigneeFromGf;
                     }
                 }
 
@@ -159,7 +160,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
                         aesObj.ShipmentParty.Add(oldUltimateConsignee);
                     }
 
-                }
+                }               
 
                 if (aes.Aes.CommodityDetails != null && aes.Aes.CommodityDetails.Count > 0)
                 {                    
