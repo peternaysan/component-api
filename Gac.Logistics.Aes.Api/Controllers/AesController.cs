@@ -139,11 +139,11 @@ namespace Gac.Logistics.Aes.Api.Controllers
                     {
                         party.StateCode = freightForwarder.StateCode;
                     }
-                    else if(party.PartyType == "E")
-                    {
-                        //retain usppi statecode as its not coming from GF
-                        party.StateCode = usppi.StateCode;
-                    }
+                    //else if(party.PartyType == "E")
+                    //{
+                    //    //retain usppi statecode as its not coming from GF
+                    //    party.StateCode = usppi.StateCode;
+                    //}
                     else if (party.PartyType == "C")
                     {
                         replaceUltimateConsignee = oldUltimateConsignee.consigneeFromGf == "N";
