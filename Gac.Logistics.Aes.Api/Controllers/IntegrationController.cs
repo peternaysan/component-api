@@ -80,18 +80,24 @@ namespace Gac.Logistics.Aes.Api.Controllers
 
             if (getsResponse.Ack.Aes.Status == GetsStatus.SUCCESS)
             {
-                item.SubmissionStatus = AesStatus.GETSAPPROVED;
-                item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
+                if (item.SubmissionStatus == AesStatus.SUBMITTED)
+                {
+                    item.SubmissionStatus = AesStatus.GETSAPPROVED;
+                    item.SubmissionStatusDescription = getsResponse.Ack.Aes.StatusDescription;
+                }
                 var getsRes = getsResponse;
                 item.GetsResponse = getsRes;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
             }
             else if (getsResponse.Ack.Aes.Status == GetsStatus.FAIL)
             {
-                item.SubmissionStatus = AesStatus.GETSREJECTED;
-                if (getsResponse.Ack.Aes.Error != null && getsResponse.Ack.Aes.Error.Count > 0)
+                if (item.SubmissionStatus == AesStatus.SUBMITTED)
                 {
-                    item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.First().ErrorDescription;
+                    item.SubmissionStatus = AesStatus.GETSREJECTED;
+                    if (getsResponse.Ack.Aes.Error != null && getsResponse.Ack.Aes.Error.Count > 0)
+                    {
+                        item.SubmissionStatusDescription = getsResponse.Ack.Aes.Error.First().ErrorDescription;
+                    }
                 }
                 item.GetsResponse = getsResponse;
                 await aesDbRepository.UpdateItemAsync(item.Id, item);
