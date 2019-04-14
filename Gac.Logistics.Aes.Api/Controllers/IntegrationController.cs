@@ -112,7 +112,11 @@ namespace Gac.Logistics.Aes.Api.Controllers
                 return BadRequest("Invalid status value");
             }
 
-            await hubContext.Clients.All.SendAsync("getscallback", getsResponse);
+            if (item.SubmissionStatus == AesStatus.SUBMITTED)
+            {
+                await hubContext.Clients.All.SendAsync("getscallback", getsResponse);
+            }
+
             return Ok(true);
         }
 
