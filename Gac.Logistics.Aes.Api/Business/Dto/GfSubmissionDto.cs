@@ -100,6 +100,9 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
 
         [JsonProperty("city")]
         public string City { get; set; }
+
+        [JsonProperty("stateCode")]
+        public string StateCode { get; set; }
     }
 
     //public class GfCommodityDetails
