@@ -61,6 +61,9 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
         [JsonProperty("ultimateDestinationCountry")]
         public string UltimateDestinationCountry { get; set; }
 
+        [JsonProperty("filingTypeIndicator")]
+        public string FilingTypeIndicator { get; set; }
+
 
     }
 
