@@ -12,6 +12,7 @@ using Gac.Logistics.Aes.Api.Business;
 using System;
 using Gac.Logistics.Aes.Api.Hubs;
 using Gac.Logistics.Aes.Api.Profile;
+using Microsoft.AspNetCore.Mvc.Cors.Internal;
 
 namespace AesComponentApi
 {
@@ -32,6 +33,15 @@ namespace AesComponentApi
                                            {
                                                options.ForwardClientCertificate = false;
                                            });
+
+            services.AddCors(options =>
+                             {
+                                 options.AddPolicy("CorsPolicy",
+                                                   builder => builder.AllowAnyOrigin()
+                                                                     .AllowAnyMethod()
+                                                                     .AllowAnyHeader()
+                                                                     .AllowCredentials());
+                             });
             // Repositories
             services.AddTransient<AesDbRepository, AesDbRepository>();
             services.AddTransient<AesTransactionDbRepository, AesTransactionDbRepository>();
@@ -42,19 +52,13 @@ namespace AesComponentApi
 
             services.AddTransient<IxService, IxService>();
 
+           
             services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddJsonOptions(options =>
                                         options.SerializerSettings.Converters
-                                               .Add(new EmptyStringToNullJsonConverter()));
-            services.AddCors(options =>
-                             {
-                                 options.AddPolicy("CorsPolicy",
-                                                   builder => builder.AllowAnyOrigin()
-                                                                     .AllowAnyMethod()
-                                                                     .AllowAnyHeader()
-                                                                     .AllowCredentials());
-                             });
+                                               .Add(new EmptyStringToNullJsonConverter()));            
+
 
             services.AddHttpClient("ix", c =>
             {
