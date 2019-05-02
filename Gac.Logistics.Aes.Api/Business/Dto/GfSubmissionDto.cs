@@ -13,6 +13,10 @@ namespace Gac.Logistics.Aes.Api.Business.Dto
         [JsonProperty("bookingId")]
         public string BookingId { get; set; }
 
+
+        [JsonProperty("IsUserAllowToEdit")]
+        public string IsUserAllowToEdit { get; set; }
+
         [JsonProperty("createdBy")]
         public string CreatedBy { get; set; }
 
