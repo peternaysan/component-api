@@ -42,7 +42,7 @@ namespace Gac.Logistics.Aes.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(string id)
         {
-            if (id == null) // check id is null
+            if (id == null) // check whether id is null
             {
                 return BadRequest();
             }
